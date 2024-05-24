@@ -2,11 +2,7 @@
 ISR( INT0_vect )
 {
   int count = countRight;
-  if (dirLeft) {
-    count++;
-  } else {
-    count--;
-  }
+  count++;
   countRight = count;
 }
 
@@ -14,11 +10,7 @@ ISR( INT0_vect )
 ISR( INT1_vect )
 {
   int count = countLeft;
-  if (dirRight) {
-    count++;
-  } else {
-    count--;
-  }
+  count++;
   countLeft = count;
 }
 
@@ -62,8 +54,32 @@ void setV() {
   if (vRight < 0) {
     vRight = 0;
   }
-  analogWrite(pwmLeft, vLeft);
-  analogWrite(pwmRight, vRight);
+  if (onStart) {
+    if (vLeftCur < vLeft)
+    {
+      vLeftCur += acsSpeed;
+    }
+    if (vRightCur < vRight)
+    {
+      vRightCur += acsSpeed;
+    }
+    if (vLeftCur > vLeft || vRightCur > vRight) {
+      vLeftCur = vLeft;
+      vRightCur = vRight;
+      onStart = false;
+    }
+  } 
+  else {
+    vLeftCur = vLeft;
+    vRightCur = vRight;
+  }
+  if (DEBUG) {
+    Serial.print(vLeftCur);
+    Serial.print(" <> ");
+    Serial.println(vRightCur);
+  }
+  analogWrite(pwmLeft, vLeftCur);
+  analogWrite(pwmRight, vRightCur);
 }
 
 void resetEncoders() {
@@ -84,19 +100,60 @@ bool checkEncoders(int targetLeft, int targetRight) {
   return countLeft < targetLeft && countRight < targetRight;
 }
 
-void forward(int targetLeft, int targetRight) {
+void move(int targetLeft, int targetRight, bool calcSensors) {
+  onStart = true;
   resetEncoders();
+  int error = 0;
+  while (checkEncoders(targetLeft, targetRight)) {
+    error = calcError(calcSensors);
+    vLeft = V - error;
+    vRight = V + error;
+    setV();
+  }
+}
+
+void forward(int target) {
   if (!dirLeft) {
     changeDirLeft();
   }
   if (!dirRight) {
     changeDirRight();
   }
-  while (checkEncoders(targetLeft, targetRight)) {
-    vLeft = V;
-    vRight = V;
-    setV();
+  move(target, target, true);
+}
+
+void backward(int target) {
+  if (dirLeft) {
+    changeDirLeft();
   }
+  if (dirRight) {
+    changeDirRight();
+  }
+  move(target, target, true);
+}
+
+void turnTank(bool isLeft) {
+  if (isLeft) {
+    if (dirLeft) {
+      changeDirLeft();
+    }
+    if (!dirRight) {
+      changeDirRight();
+    }
+  }
+  else {
+    if (!dirLeft) {
+      changeDirLeft();
+    }
+    if (dirRight) {
+      changeDirRight();
+    }
+  }
+  move(encodersPerTankTurn, encodersPerTankTurn, false);
+}
+
+void motorsStop() {
+  onStart = false;
   vLeft = 0;
   vRight = 0;
   setV();

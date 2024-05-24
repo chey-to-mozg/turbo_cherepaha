@@ -1,10 +1,14 @@
+const float MCU_VOLTAGE = 5.0;
+
 int calcDistance(int sensor) {
-  // FIXME try transform value using formula
-  int normalizedValue = analogRead(sensor) - sensorMinValue;
-  if (normalizedValue < 0) {
-    normalizedValue = 0;
+  int rawData = analogRead(sensor);
+  float normalizedData = rawData * MCU_VOLTAGE / 1023.0;
+  if (DEBUG) {
+    Serial.print(rawData);
+    Serial.print(" ");
+    Serial.println(normalizedData);
   }
-  return sensorMaxValue - normalizedValue;
+  return (33.9 + -69.5*(normalizedData) + 62.3*pow(normalizedData,2) + -25.4*pow(normalizedData,3) + 3.83*pow(normalizedData,4)) * 10; // in millimeters
 }
 
 void calcDistanceLeft() {
@@ -40,6 +44,29 @@ void readSensors() {
   checkFrontWall();
 }
 
+void initRefDistance() {
+  int avgDistLeft = 0;
+  int avgDistRight = 0;
+  int counts = 10;
+  for (int i = 0; i < counts; i++) {
+    readSensors();
+    avgDistLeft += distanceLeft;
+    avgDistRight += distanceRight;
+  }
+  
+  refDistanceLeft = avgDistLeft / counts;
+  refDistanceRight = avgDistRight / counts;
+  if (DEBUG) {
+    Serial.print("distance ");
+    Serial.print(avgDistLeft);
+    Serial.print(" ");
+    Serial.print(avgDistRight);
+    Serial.print(" ");
+    Serial.print(refDistanceLeft);
+    Serial.print(" ");
+    Serial.println(refDistanceRight);
+  }
+}
 
 bool buttonPressed() {
   if (digitalRead(button)){
@@ -69,6 +96,7 @@ void testSensors() {
 
   Serial.print("Button: ");
   Serial.println(buttonPressed());
+  delay(100);
 }
 
 void checkVoltage() {
