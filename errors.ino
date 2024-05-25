@@ -13,8 +13,12 @@ float calcEncodersError() {
   float totError = pTerm + dTerm;
   
   if (DEBUG) {
-    Serial.print("enc err ");
-    Serial.println(totError);
+    Serial.print(" enc left ");
+    Serial.print(countLeft);
+    Serial.print(" enc right ");
+    Serial.print(countRight);
+    Serial.print(" enc err ");
+    Serial.print(totError);
   }
   
   errOldEnc = error;
@@ -42,18 +46,17 @@ float calcSensorError() {
   dTerm /= loopInterval;
   float totError = pTerm + dTerm;
   
-  if (!DEBUG) {
-    Serial.print("sens err ");
-    Serial.print(" ");
+  if (DEBUG) {
+    Serial.print(" err left ");
     Serial.print(errorLeft);
-    Serial.print(" ");
+    Serial.print(" err right ");
     Serial.print(errorRight);
-    Serial.print(" ");
-    Serial.print(error);
-    Serial.print(" ");
+    Serial.print(" wall left ");
+    Serial.print(isWallLeft);
+    Serial.print(" wall right ");
     Serial.print(isWallRight);
-    Serial.print(" ");
-    Serial.println(totError);
+    Serial.print(" sens error ");
+    Serial.print(totError);
   }
   
   errOldSens = error;
@@ -71,7 +74,7 @@ int calcError(bool calcSensors) {
   float totError = encoderError + sensorError;
   
   if (DEBUG) {
-    Serial.print("total err ");
+    Serial.print(" total err ");
     Serial.println(totError);
   }
   

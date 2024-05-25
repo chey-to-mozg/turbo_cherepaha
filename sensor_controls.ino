@@ -1,13 +1,11 @@
 const float MCU_VOLTAGE = 5.0;
 
 int calcDistance(int sensor) {
-  int rawData = analogRead(sensor);
-  float normalizedData = rawData * MCU_VOLTAGE / 1023.0;
-  if (DEBUG) {
-    Serial.print(rawData);
-    Serial.print(" ");
-    Serial.println(normalizedData);
+  int rawData = 0;
+  for (int i = 0; i < sensorReads; i++) {
+    rawData += analogRead(sensor);
   }
+  float normalizedData = rawData * MCU_VOLTAGE / (1023.0 * sensorReads);
   return (33.9 + -69.5*(normalizedData) + 62.3*pow(normalizedData,2) + -25.4*pow(normalizedData,3) + 3.83*pow(normalizedData,4)) * 10; // in millimeters
 }
 
@@ -24,15 +22,15 @@ void calcDistanceFront() {
 }
 
 bool checkLeftWall() {
-  isWallLeft = distanceLeft < sensorWallDetect;
+  isWallLeft = distanceLeft < sensorSideWallDetect;
 }
 
 int checkRightWall() {
-  isWallRight = distanceRight < sensorWallDetect;
+  isWallRight = distanceRight < sensorSideWallDetect;
 }
 
 int checkFrontWall() {
-  isWallFront = distanceFront < sensorWallDetect;
+  isWallFront = distanceFront < sensorFrontWallDetect;
 }
 
 void readSensors() {
@@ -69,6 +67,7 @@ void initRefDistance() {
 }
 
 bool buttonPressed() {
+  Serial.println(digitalRead(button));
   if (digitalRead(button)){
     int curTime = millis();
     while (digitalRead(button)) {
@@ -84,17 +83,17 @@ void testSensors() {
   Serial.print("left encoder: ");
   Serial.print(countLeft);
   Serial.print(" right encoder:");
-  Serial.println(countRight);
+  Serial.print(countRight);
   
   readSensors();
-  Serial.print("left sensor: ");
+  Serial.print(" left sensor: ");
   Serial.print(distanceLeft);
   Serial.print(" right sensor:");
   Serial.print(distanceRight);
   Serial.print(" front sensor: ");
-  Serial.println(distanceFront);
+  Serial.print(distanceFront);
 
-  Serial.print("Button: ");
+  Serial.print(" Button: ");
   Serial.println(buttonPressed());
   delay(100);
 }

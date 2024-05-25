@@ -87,27 +87,49 @@ void resetEncoders() {
   countRight = 0;
 }
 
-bool checkEncoders(int targetLeft, int targetRight) {
-  if (DEBUG) {
-    Serial.print(countLeft);
-    Serial.print(" < ");
-    Serial.print(targetLeft);
-    Serial.print("  ");
-    Serial.print(countRight);
-    Serial.print(" < ");
-    Serial.println(targetRight);
+bool checkEncoders(int targetLeft, int targetRight, bool strict) {
+  if (strict) {
+    // both counters should reach goal
+    return countLeft < targetLeft || countRight < targetRight;
   }
-  return countLeft < targetLeft && countRight < targetRight;
+  else {
+    if (distanceFront <= sensorFrontWallTreshold) {
+      return false;
+    }
+    // in case one counter reach goal we can move futher
+    return countLeft < targetLeft && countRight < targetRight;
+  }
 }
 
 void move(int targetLeft, int targetRight, bool calcSensors) {
   onStart = true;
   resetEncoders();
   int error = 0;
-  while (checkEncoders(targetLeft, targetRight)) {
+  readSensors();
+  while (checkEncoders(targetLeft, targetRight, false)) {
     error = calcError(calcSensors);
     vLeft = V - error;
     vRight = V + error;
+    setV();
+  }
+}
+
+void moveStrict(int targetLeft, int targetRight) {
+  onStart = true;
+  resetEncoders();
+  while (checkEncoders(targetLeft, targetRight, true)) {
+    if (countLeft < targetLeft) {
+      vLeft = V;
+    }
+    else {
+      vLeft = 0;
+    }
+    if (countRight < targetRight) {
+      vRight = V;
+    }
+    else {
+      vRight = 0;
+    }
     setV();
   }
 }
@@ -123,13 +145,15 @@ void forward(int target) {
 }
 
 void backward(int target) {
+  V = vToCorect;
   if (dirLeft) {
     changeDirLeft();
   }
   if (dirRight) {
     changeDirRight();
   }
-  move(target, target, true);
+  move(target, target, false);
+  V = Vdefault;
 }
 
 void turnTank(bool isLeft) {
@@ -149,7 +173,7 @@ void turnTank(bool isLeft) {
       changeDirRight();
     }
   }
-  move(encodersPerTankTurn, encodersPerTankTurn, false);
+  moveStrict(encodersPerTankTurn, encodersPerTankTurn);
 }
 
 void motorsStop() {
@@ -157,6 +181,7 @@ void motorsStop() {
   vLeft = 0;
   vRight = 0;
   setV();
+  delay(100);
 }
 
 void testMotors() {
