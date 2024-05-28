@@ -24,6 +24,7 @@ uint8_t dirToWallMasks[4][3] = {
 };
 
 uint8_t wallMasks[4] = {maskWallU, maskWallR, maskWallD, maskWallL}; // mapped with positionChanges
+uint8_t wallCheckedMasks[4] = {maskUnknownU, maskUnknownR, maskUnknownD, maskUnknownL}; // mapped with positionChanges
 
 bool checkPosition(int8_t y, int8_t x) {
   return y >= 0 && y < mazeShapeY && x >= 0 && x < mazeShapeX;
@@ -254,7 +255,8 @@ void calcShortestPath() {
         }
       }
       uint8_t forwardWall = walls[curPosY][curPosX] & wallMasks[targetDirection];
-      if ( valDiff == 1 && !(forwardWall)){
+      uint8_t wallChecked = walls[curPosY][curPosX] & wallCheckedMasks[targetDirection];
+      if ( valDiff == 1 && !(forwardWall) && wallChecked){
         // copy paste
         uint8_t directionDiff = (curDir + 4 - targetDirection) % 4;
         if (directionDiff == 0) {
@@ -262,16 +264,22 @@ void calcShortestPath() {
         }
         if (directionDiff == 1) {
           path.enqueue(_turnLeft);
-          path.enqueue(_moveFoward);
         }
         if (directionDiff == 3) {
           path.enqueue(_turnRight);
-          path.enqueue(_moveFoward);
         }
         curPosY = neighbour.y;
         curPosX = neighbour.x;
         curVal = maze[neighbour.y][neighbour.x];
         curDir = targetDirection;
+        Serial.print("curPosY ");
+        Serial.print(curPosY);
+        Serial.print(" curPosX ");
+        Serial.print(curPosX);
+        Serial.print(" curVal ");
+        Serial.print(curVal);
+        Serial.print(" curDir ");
+        Serial.println(curDir);
         break;
       }
     }
@@ -312,7 +320,6 @@ void decideMove() {
       forward(encodersPerCell);
     }
     movePosition();
-    setWalls();
   }
   else {
     int8_t targetDiffY = 0;
@@ -364,7 +371,10 @@ void decideMove() {
       else {
         turnTank(true);
         turnTank(true);
-        backward(encodersToCorrect);
+        if (walls[robotPositionY][robotPositionX] & wallMasks[robotDirection])
+        {
+          backward(encodersToCorrect);
+        }
       }
       turnDirection(true);
       turnDirection(true);
@@ -382,9 +392,10 @@ void decideMove() {
       }
       turnDirection(false);
       movePosition();
-      setWalls();
     }
   }
+  //motorsStop();
+  setWalls();
 }
 
 void runShort() {
@@ -395,9 +406,11 @@ void runShort() {
     }
     else if (dir == 1) {
       turnTank(true);
+      forward(encodersPerCell);
     }
     else if (dir == 2) {
       turnTank(false);
+      forward(encodersPerCell);
     }
     else if (dir == 3) {
       forward(encodersToCenter);

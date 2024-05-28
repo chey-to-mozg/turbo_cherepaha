@@ -103,7 +103,6 @@ bool checkEncoders(int targetLeft, int targetRight, bool strict) {
 
 void move(int targetLeft, int targetRight, bool calcSensors) {
   onStart = true;
-  resetEncoders();
   int error = 0;
   readSensors();
   while (checkEncoders(targetLeft, targetRight, false)) {
@@ -112,11 +111,11 @@ void move(int targetLeft, int targetRight, bool calcSensors) {
     vRight = V + error;
     setV();
   }
+  resetEncoders();
 }
 
 void moveStrict(int targetLeft, int targetRight) {
   onStart = true;
-  resetEncoders();
   while (checkEncoders(targetLeft, targetRight, true)) {
     if (countLeft < targetLeft) {
       vLeft = V;
@@ -132,6 +131,7 @@ void moveStrict(int targetLeft, int targetRight) {
     }
     setV();
   }
+  resetEncoders();
 }
 
 void forward(int target) {

@@ -34,14 +34,14 @@ const bool DEBUG = false;
 
 // maze solving parameters
 
-const int mazeShapeY = 3;
-const int mazeShapeX = 3;
+const int mazeShapeY = 11;
+const int mazeShapeX = 11;
 
-const int8_t robotPositionYStart = 2;
-const int8_t robotPositionXStart = 2;
+const int8_t robotPositionYStart = 10;
+const int8_t robotPositionXStart = 10;
 
-const int8_t finishPositionY = 1;
-const int8_t finishPositionX = 0;
+const int8_t finishPositionY = 5;
+const int8_t finishPositionX = 5;
 
 int8_t robotPositionY = robotPositionYStart;
 int8_t robotPositionX = robotPositionXStart;
@@ -78,11 +78,11 @@ uint8_t walls[mazeShapeY][mazeShapeX] = {0}; // each wall value represent walls 
 const int sensorValuesPerMillimeter = 3;  // every 3 values is 1 millimeter. Voltage function is not linear, need to find proper function for normalization
 const int sensorSideWallDetect = 100;  // in millineters
 const int sensorFrontWallDetect = 120;
-const int sensorFrontWallTreshold = 30;
+const int sensorFrontWallTreshold = 35;
 
 const int _buttonDelay = 300; // to not count random signals
 
-const int Vdefault = 50;
+const int Vdefault = 70;
 
 const float pi = 3.14;
 
@@ -93,13 +93,13 @@ const int encodersPerTankTurn = (180 / degreePerEncoder); // each whell should t
 
 const float kPEnc = 0;
 const float kDEnc = 0;
-const float kPSens = 0.1;
-const float kDSens = 0.005;
+const float kPSens = 0.2;
+const float kDSens = 0.01;
 
 int refDistanceLeft = 0;
 int refDistanceRight = 0;
 
-const int wallLength = 180;
+const int wallLength = 190;
 const int encodersPerCell = wallLength * encoderPerMillimeter + 1;
 
 const int robotOffset = 50;
@@ -109,7 +109,7 @@ const int encodersToCenter = distToCenter * encoderPerMillimeter;
 const int encodersToCorrect = encodersToCenter * 2;
 const int vToCorect = 50;
 
-const int sensorReads = 10;
+const int sensorReads = 15;
 
 // varialbes to store values
 int V = Vdefault;
@@ -220,14 +220,15 @@ void setup() {
   printConfig();
   initMaze();
   waitToStart();
-  setWalls();
   initRefDistance();
+  waitToStart();
+  setWalls();
 }
 
 void loop() {
   checkVoltage();
   decideMove();
-  printWalls();
+  //printWalls();
   if (isBreak) {
     exit(1);
   }
@@ -237,5 +238,5 @@ void loop() {
     runShort();
     exit(0);
   }  
-//testSensors();
+//  testSensors();
 }
