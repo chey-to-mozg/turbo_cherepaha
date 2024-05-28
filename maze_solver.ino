@@ -69,7 +69,7 @@ struct Pair {
 
 ArduinoQueue<Pair> neighbours(4);
 
-void calcNeighbours(int8_t y, int8_t x) {
+void calcNeighbours(int8_t y, int8_t x, bool strict = true) {
   while(!neighbours.isEmpty()) {
     neighbours.dequeue();
   }
@@ -77,7 +77,14 @@ void calcNeighbours(int8_t y, int8_t x) {
   for(int dir = 0; dir < 4; dir++) {
     int8_t neighbourY = y + positionChanges[dir][0];
     int8_t neighbourX = x + positionChanges[dir][1];
-    if (checkPosition(neighbourY, neighbourX) && !(walls[y][x] & wallMasks[dir])) {
+    uint8_t isWall;
+    if (strict) {
+      isWall = walls[y][x] & wallMasks[dir];
+    }
+    else {
+      isWall = 0;
+    }
+    if (checkPosition(neighbourY, neighbourX) && !isWall) {
       pos = {neighbourY, neighbourX};
       neighbours.enqueue(pos);
     }
@@ -143,6 +150,10 @@ void floodfill() {
   positions.enqueue(pos);
   while (!positions.isEmpty()) {
     pos = positions.dequeue();
+    int curVal = maze[pos.y][pos.x];
+    if (curVal == 0) {
+      continue;
+    }
     if (DEBUG) {
       Serial.print("check ");
       Serial.print(pos.y);
@@ -166,9 +177,9 @@ void floodfill() {
         Serial.println(neighbValue);
       }
     }
-    if (maze[pos.y][pos.x] <= minNeighbour) {
+    if (curVal <= minNeighbour) {
       maze[pos.y][pos.x] = minNeighbour + 1;
-      calcNeighbours(pos.y, pos.x);
+      calcNeighbours(pos.y, pos.x, false);
       while(!neighbours.isEmpty()) {
         Pair neighbour = neighbours.dequeue();
         positions.enqueue(neighbour);

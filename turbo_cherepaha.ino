@@ -30,7 +30,7 @@ byte pinOuts[7] = {pwmLeft, pwmRight, in1Left, in2Left, in1Right, in2Right, alar
 #define directionD 2
 #define directionL 3
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 // maze solving parameters
 
@@ -73,6 +73,22 @@ uint8_t walls[mazeShapeY][mazeShapeX] = {0}; // each wall value represent walls 
  * |0|_|
  * robot in position 0, 0 (marked as 0), for this case walls[0][0] = 1101|0101 (we have information about Up wall, Right wall, Left wall i.e. 1101, and only 2 walls marked is Left wall and Right wall i.e. 0101)
 */
+
+/*
+ * test maze 
+ * 
+10 9  8  7 8  9 10 11 12 13 14 
+9  8  7  6 11 10 11 12 13 14 15 
+8  7  6  5 4 11 12 13 14 15 16 
+9  8  9  6 3  2 13 14 15 16 17 
+10 9  8  7 12 1 14 15 16 17 18 
+11 10 9 10 11 0 15 16 17 18 23 
+12 11 10 11 16 15 16 17 18 19 22 
+13 12 11 12 13 14 15 16 17 18 21 
+14 13 12 13 14 17 16 17 18 19 20 
+15 14 13 14 15 16 17 18 19 20 21 
+16 15 14 15 16 17 18 19 20 21 22
+ */
 
 // constants
 const int sensorValuesPerMillimeter = 3;  // every 3 values is 1 millimeter. Voltage function is not linear, need to find proper function for normalization
