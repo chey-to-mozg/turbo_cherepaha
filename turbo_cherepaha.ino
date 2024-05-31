@@ -30,18 +30,18 @@ byte pinOuts[7] = {pwmLeft, pwmRight, in1Left, in2Left, in1Right, in2Right, alar
 #define directionD 2
 #define directionL 3
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 // maze solving parameters
 
-const int mazeShapeY = 11;
-const int mazeShapeX = 11;
+const int mazeShapeY = 3;
+const int mazeShapeX = 3;
 
-const int8_t robotPositionYStart = 10;
-const int8_t robotPositionXStart = 10;
+const int8_t robotPositionYStart = 2;
+const int8_t robotPositionXStart = 2;
 
-const int8_t finishPositionY = 5;
-const int8_t finishPositionX = 5;
+const int8_t finishPositionY = 0;
+const int8_t finishPositionX = 0;
 
 int8_t robotPositionY = robotPositionYStart;
 int8_t robotPositionX = robotPositionXStart;
@@ -63,9 +63,8 @@ char ditectionHistory[100] = {0};
 int historyIndex = 0;
 
 int maze[mazeShapeY][mazeShapeX] = {0};
+bool visited[mazeShapeY][mazeShapeX] = {0};
 uint8_t walls[mazeShapeY][mazeShapeX] = {0}; // each wall value represent walls in form UNKNOWN bits: URDL | PRESENT bits: URDL
-//int maze[mazeShapeY][mazeShapeX] = {5, 4, 5, 0, 3, 4, 1, 2, 5};
-//uint8_t walls[mazeShapeY][mazeShapeX] = {251, 248, 50, 236, 241, 252, 243, 246, 213 }; // each wall value represent walls in form UNKNOWN bits: URDL | PRESENT bits: URDL
 /*
  * Example
  * |   |
@@ -98,25 +97,25 @@ const int sensorFrontWallTreshold = 35;
 
 const int _buttonDelay = 300; // to not count random signals
 
-const int Vdefault = 70;
+const int Vdefault = 50;
 
 const float pi = 3.14;
 
 const int wheelR = 23;  // mm
-const int degreePerEncoder = 30;  // degrees
+const float degreePerEncoder = 1.2;  // degrees
 const float encoderPerMillimeter = 180 / ((pi * wheelR) * degreePerEncoder);  // length of sector is L = Pi * R * alpha / 180   ||  1 encoder = 23 millimeters 
 const int encodersPerTankTurn = (180 / degreePerEncoder); // each whell should turn on 180 degrees
 
 const float kPEnc = 0;
 const float kDEnc = 0;
-const float kPSens = 0.2;
-const float kDSens = 0.01;
+const float kPSens = 0;
+const float kDSens = 0;
 
 int refDistanceLeft = 0;
 int refDistanceRight = 0;
 
-const int wallLength = 190;
-const int encodersPerCell = wallLength * encoderPerMillimeter + 1;
+const int wallLength = 180;
+const int encodersPerCell = wallLength * encoderPerMillimeter;
 
 const int robotOffset = 50;
 const int distToCenter = wallLength / 2 - robotOffset;
@@ -234,7 +233,8 @@ void setup() {
   Serial.begin(9600);
   resetEncoders();
   printConfig();
-  initMaze();
+  initMaze(true);
+  visited[robotPositionY][robotPositionX] = true;
   waitToStart();
   initRefDistance();
   waitToStart();

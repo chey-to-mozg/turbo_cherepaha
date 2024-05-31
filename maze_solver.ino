@@ -48,6 +48,7 @@ void movePosition() {
   int8_t deltaX = positionChanges[robotDirection][1];
   robotPositionY += deltaY;
   robotPositionX += deltaX;
+  visited[robotPositionY][robotPositionX] = true;
   if (DEBUG) {
     Serial.print("deltas ");
     Serial.print(deltaY);
@@ -91,23 +92,31 @@ void calcNeighbours(int8_t y, int8_t x, bool strict = true) {
   }
 }
 
-char directionToChar[4] = {'^', '>', 'v', '<'};
-
-void initMaze() {
-  for (int y = 0; y < mazeShapeY; y++) {
-    for (int x = 0; x < mazeShapeX; x++) {
-      maze[y][x] = -1;
+void initMaze(bool reset) {
+  if (reset) {
+    for (int y = 0; y < mazeShapeY; y++) {
+      for (int x = 0; x < mazeShapeX; x++) {
+        maze[y][x] = -1;
+      }
     }
   }
+  bool _visited[mazeShapeY][mazeShapeX] = {0};
   ArduinoQueue<Pair> positions(mazeShapeX * mazeShapeY);
-  Pair pos;
-  pos = {finishPositionY, finishPositionX};
-  positions.enqueue(pos);
   
+  calcNeighbours(finishPositionY, finishPositionX);
+  while(!neighbours.isEmpty()) {
+    Pair neighbour = neighbours.dequeue();
+    positions.enqueue(neighbour);
+  }
   maze[finishPositionY][finishPositionX] = 0;
-  
+
+  Pair pos;
   while (!positions.isEmpty()) {
     pos = positions.dequeue();
+    if (_visited[pos.y][pos.x]) {
+      continue;
+    }
+    _visited[pos.y][pos.x] = true;
     int minNeighbour = mazeShapeX * mazeShapeY;
     calcNeighbours(pos.y, pos.x);
     while(!neighbours.isEmpty()) {
@@ -123,20 +132,9 @@ void initMaze() {
     if (maze[pos.y][pos.x] == -1) {
       maze[pos.y][pos.x] = minNeighbour + 1;
     }
-  } 
+  }
   if (DEBUG) {
-    for (int y = 0; y < mazeShapeY; y++) {
-      for (int x = 0; x < mazeShapeX; x++) {
-        if (y == robotPositionY && x == robotPositionX) {
-          Serial.print(directionToChar[robotDirection]);
-        }
-        else {
-          Serial.print(maze[y][x]);
-        }
-        Serial.print(" ");
-      }
-      Serial.println("");
-    }
+    printMaps();
   }
 }
 
@@ -154,28 +152,12 @@ void floodfill() {
     if (curVal == 0) {
       continue;
     }
-    if (DEBUG) {
-      Serial.print("check ");
-      Serial.print(pos.y);
-      Serial.print(" ");
-      Serial.println(pos.x);
-    }
     int minNeighbour = mazeShapeX * mazeShapeY;
     calcNeighbours(pos.y, pos.x);
     while(!neighbours.isEmpty()) {
       Pair neighbour = neighbours.dequeue();
-      if (DEBUG) {
-        Serial.print(" check neighbor ");
-        Serial.print(neighbour.y);
-        Serial.print(" ");
-        Serial.print(neighbour.x);
-      }
       int neighbValue = maze[neighbour.y][neighbour.x];
       minNeighbour = min(minNeighbour, neighbValue);
-      if (DEBUG) {
-        Serial.print(" neighbValue ");
-        Serial.println(neighbValue);
-      }
     }
     if (curVal <= minNeighbour) {
       maze[pos.y][pos.x] = minNeighbour + 1;
@@ -187,18 +169,7 @@ void floodfill() {
     }
   }
   if (DEBUG) {
-    for (int y = 0; y < mazeShapeY; y++) {
-      for (int x = 0; x < mazeShapeX; x++) {
-        if (y == robotPositionY && x == robotPositionX) {
-          Serial.print(directionToChar[robotDirection]);
-        }
-        else {
-          Serial.print(maze[y][x]);
-        }
-        Serial.print(" ");
-      }
-      Serial.println("");
-    }
+    printMaps();
   }
 }
 
@@ -234,7 +205,7 @@ void setWalls() {
   floodfill();
 }
 
-#define _moveFoward 0
+#define _moveForward 0
 #define _turnLeft 1
 #define _turnRight 2
 #define _start 3
@@ -242,6 +213,15 @@ void setWalls() {
 ArduinoQueue<int> path(mazeShapeY * mazeShapeX * 2); // multiply by 2 for turns
 
 void calcShortestPath() {
+  for (int y = 0; y < mazeShapeY; y++) {
+    for (int x = 0; x < mazeShapeX; x++) {
+      if (!visited[y][x]) {
+        walls[y][x] = 255;
+        maze[y][x] = -1;
+      }
+    }
+  }
+  initMaze(false);
   path.enqueue(_start);
   int8_t curPosY = robotPositionYStart;
   int8_t curPosX = robotPositionXStart;
@@ -253,6 +233,7 @@ void calcShortestPath() {
     int8_t targetDiffY = 0;
     int8_t targetDiffX = 0;
     uint8_t targetDirection = curDir;
+    int minDiff = mazeShapeY * mazeShapeX;
     while(!neighbours.isEmpty()) {
       Pair neighbour = neighbours.dequeue();
       // copy paste
@@ -266,31 +247,41 @@ void calcShortestPath() {
         }
       }
       uint8_t forwardWall = walls[curPosY][curPosX] & wallMasks[targetDirection];
-      uint8_t wallChecked = walls[curPosY][curPosX] & wallCheckedMasks[targetDirection];
-      if ( valDiff == 1 && !(forwardWall) && wallChecked){
+      if ( valDiff == 1 && !forwardWall) {
         // copy paste
         uint8_t directionDiff = (curDir + 4 - targetDirection) % 4;
         if (directionDiff == 0) {
-          path.enqueue(_moveFoward);
+          if (DEBUG) {
+            Serial.println("Forward");
+          }
+          path.enqueue(_moveForward);
         }
         if (directionDiff == 1) {
+          if (DEBUG) {
+            Serial.println("Left");
+          }
           path.enqueue(_turnLeft);
         }
         if (directionDiff == 3) {
+          if (DEBUG) {
+            Serial.println("Right");
+          }
           path.enqueue(_turnRight);
         }
         curPosY = neighbour.y;
         curPosX = neighbour.x;
         curVal = maze[neighbour.y][neighbour.x];
         curDir = targetDirection;
-        Serial.print("curPosY ");
-        Serial.print(curPosY);
-        Serial.print(" curPosX ");
-        Serial.print(curPosX);
-        Serial.print(" curVal ");
-        Serial.print(curVal);
-        Serial.print(" curDir ");
-        Serial.println(curDir);
+        if (DEBUG) {
+          Serial.print("curPosY ");
+          Serial.print(curPosY);
+          Serial.print(" curPosX ");
+          Serial.print(curPosX);
+          Serial.print(" curVal ");
+          Serial.print(curVal);
+          Serial.print(" curDir ");
+          Serial.println(curDir);
+        }
         break;
       }
     }
@@ -371,7 +362,6 @@ void decideMove() {
       }
       turnDirection(true);
       movePosition();
-      setWalls();
     }
     if (directionDiff == 2) {
       // turn around
@@ -412,18 +402,18 @@ void decideMove() {
 void runShort() {
   while (!path.isEmpty()) {
     int dir = path.dequeue();
-    if (dir == 0) {
+    if (dir == _moveForward) {
       forward(encodersPerCell);
     }
-    else if (dir == 1) {
+    else if (dir == _turnLeft) {
       turnTank(true);
       forward(encodersPerCell);
     }
-    else if (dir == 2) {
+    else if (dir == _turnRight) {
       turnTank(false);
       forward(encodersPerCell);
     }
-    else if (dir == 3) {
+    else if (dir == _start) {
       forward(encodersToCenter);
     }
   }
@@ -431,42 +421,49 @@ void runShort() {
   exit(0);
 }
 
-void updateHistory() {
-  positionYHistory[historyIndex] = robotPositionY;
-  positionXHistory[historyIndex] = robotPositionX;
-  ditectionHistory[historyIndex] = directionToChar[robotDirection];
-  Serial.print("history update ");
-  Serial.print(positionYHistory[historyIndex]);
-  Serial.print(" ");
-  Serial.print(positionXHistory[historyIndex]);
-  Serial.print(" ");
-  Serial.print(ditectionHistory[historyIndex]);
-  Serial.println(" ");
-  historyIndex += 1;
-}
+char directionToChar[4] = {'^', '>', 'v', '<'};
 
-void printWalls() {
+void printMaps() {
   Serial.println("=========================");
   for (int y = 0; y < mazeShapeY; y++) {
     for (int x = 0; x < mazeShapeX; x++) {
+      if (walls[y][x] / 10 < 1) {
+        Serial.print("  ");
+      }
+      else if (walls[y][x] / 100 < 1) {
+        Serial.print(" ");
+      }
       Serial.print(walls[y][x]);
       Serial.print(" ");
     }
     Serial.println("");
   }
   Serial.println("=========================");
-  for (int i = 0; i < historyIndex; i++) {
-    Serial.print(positionYHistory[i]);
-    Serial.print(" ");
+  for (int y = 0; y < mazeShapeY; y++) {
+    for (int x = 0; x < mazeShapeX; x++) {
+      Serial.print(visited[y][x]);
+      Serial.print(" ");
+    }
+    Serial.println("");
   }
-  Serial.println("");
-  for (int i = 0; i < historyIndex; i++) {
-    Serial.print(positionXHistory[i]);
-    Serial.print(" ");
+  Serial.println("=========================");
+  for (int y = 0; y < mazeShapeY; y++) {
+    for (int x = 0; x < mazeShapeX; x++) {
+      if (maze[y][x] / 10 < 1) {
+        Serial.print("  ");
+      }
+      else if (maze[y][x] / 100 < 1) {
+        Serial.print(" ");
+      }
+      if (y == robotPositionY && x == robotPositionX) {
+        Serial.print(directionToChar[robotDirection]);
+      } 
+      else {
+        Serial.print(maze[y][x]);
+      }
+      Serial.print(" ");
+    }
+    Serial.println("");
   }
-  Serial.println("");
-  for (int i = 0; i < historyIndex; i++) {
-    Serial.print(ditectionHistory[i]);
-    Serial.print(" ");
-  }
+  Serial.println("=========================");
 }
