@@ -313,29 +313,29 @@ void setup() {
 }
 
 void loop() {
-//  checkVoltage();
-//  decideMove();
-//  //printWalls();
-//  if (isBreak) {
-//    pingOnError();
-//  }
-//  if (isFinish) {
-//    V = Vfast;
-//    while (true) {
-//      pingOnFinish();
-//      waitToStart();
-//      runShort();
-//    }
-//  }
-    setPath();
+  checkVoltage();
+  decideMove();
+  //printWalls();
+  if (isBreak) {
+    pingOnError();
+  }
+  if (isFinish) {
     V = Vfast;
-    kPEnc = 0.6; // 0.3
-    kDEnc = 0.4; // 1.2
     while (true) {
       pingOnFinish();
       waitToStart();
       runShort();
     }
+  }
+//    setPath();
+//    V = Vfast;
+//    kPEnc = 0.6; // 0.3
+//    kDEnc = 0.4; // 1.2
+//    while (true) {
+//      pingOnFinish();
+//      waitToStart();
+//      runShort();
+//    }
 //  turnTank(true);
 //  motorsStop();
 //  delay(1000);
