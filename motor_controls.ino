@@ -17,8 +17,8 @@ ISR( INT1_vect )
 void initMotors() {
   dirLeft = true;
   dirRight = true;
-  digitalWrite(in1Left, !dirLeft);
-  digitalWrite(in2Left, dirLeft);
+  digitalWrite(in1Left, dirLeft);
+  digitalWrite(in2Left, !dirLeft);
   digitalWrite(in1Right, !dirRight);
   digitalWrite(in2Right, dirRight);
 }
@@ -27,8 +27,8 @@ void changeDirLeft() {
   dirLeft = !dirLeft;
   analogWrite(pwmLeft, 0);
   delay(1);
-  digitalWrite(in1Left, !dirLeft);
-  digitalWrite(in2Left, dirLeft);
+  digitalWrite(in1Left, dirLeft);
+  digitalWrite(in2Left, !dirLeft);
   analogWrite(pwmLeft, vLeft);
 }
 
@@ -42,17 +42,17 @@ void changeDirRight() {
 }
 
 void setV() {
-  if (vLeft > 255) {
-    vLeft = 255;
+  if (vLeft > Vmax) {
+    vLeft = Vmax;
   }
-  if (vLeft < 0) {
-    vLeft = 0;
+  if (vLeft < Vmin) {
+    vLeft = Vmin;
   }
-  if (vRight > 255) {
-    vRight = 255;
+  if (vRight > Vmax) {
+    vRight = Vmax;
   }
-  if (vRight < 0) {
-    vRight = 0;
+  if (vRight < Vmin) {
+    vRight = Vmin;
   }
   if (onStart) {
     if (vLeftCur < vLeft)
@@ -63,9 +63,13 @@ void setV() {
     {
       vRightCur += acsSpeed;
     }
-    if (vLeftCur > vLeft || vRightCur > vRight) {
+    if (vLeftCur > vLeft) {
       vLeftCur = vLeft;
+    }
+    if (vRightCur > vRight) {
       vRightCur = vRight;
+    }
+    if (vLeftCur > vLeft || vRightCur > vRight) {
       onStart = false;
     }
   } 
@@ -87,7 +91,7 @@ void resetEncoders() {
   countRight = 0;
 }
 
-bool checkEncoders(int targetLeft, int targetRight, bool strict) {
+bool checkEncoders(bool strict) {
   if (strict) {
     // both counters should reach goal
     return countLeft < targetLeft || countRight < targetRight;
@@ -101,47 +105,69 @@ bool checkEncoders(int targetLeft, int targetRight, bool strict) {
   }
 }
 
-void move(int targetLeft, int targetRight, bool calcSensors) {
-  onStart = true;
+void move(int targetL, int targetR, bool calcSensors) {
+  targetLeft = targetL;
+  targetRight = targetR;
   int error = 0;
   readSensors();
-  while (checkEncoders(targetLeft, targetRight, false)) {
-    error = calcError(calcSensors);
-    vLeft = V - error;
-    vRight = V + error;
+  while (checkEncoders(false)) {
+    correctSpeed(calcSensors);
     setV();
   }
+  errOldEnc = 0;
+  errOldSens = 0;
   resetEncoders();
 }
 
-void moveStrict(int targetLeft, int targetRight) {
-  onStart = true;
-  while (checkEncoders(targetLeft, targetRight, true)) {
-    if (countLeft < targetLeft) {
-      vLeft = V;
-    }
-    else {
+void moveStrict(int targetL, int targetR) {
+  targetLeft = targetL;
+  targetRight = targetR;
+  while (checkEncoders(true)) {
+    correctSpeed(false);
+    if (countLeft > targetLeft) {
       vLeft = 0;
     }
-    if (countRight < targetRight) {
-      vRight = V;
-    }
-    else {
+    if (countRight > targetRight) {
       vRight = 0;
     }
     setV();
   }
+  errOldEnc = 0;
+  errOldSens = 0;
   resetEncoders();
 }
 
-void forward(int target) {
+void _forward(int targetL, int targetR, bool checkSensors) {
   if (!dirLeft) {
     changeDirLeft();
   }
   if (!dirRight) {
     changeDirRight();
   }
-  move(target, target, true);
+  if (checkSensors) {
+    move(targetL, targetR, checkSensors);
+  }
+  else {
+    moveStrict(targetL, targetR);
+  }
+  
+}
+
+void forward(int target) {
+  _forward(target, target, true);
+}
+
+void forwardCurve(int targetL, int targetR) {
+  _forward(targetL, targetR, false);
+}
+
+void turnCurve(bool isLeft) {
+  if (isLeft) {
+    forwardCurve(encodersPerSmallCircle, encodersPerBigCircle);
+  }
+  else {
+    forwardCurve(encodersPerBigCircle, encodersPerSmallCircle);
+  }
 }
 
 void backward(int target) {
@@ -182,6 +208,7 @@ void motorsStop() {
   vRight = 0;
   setV();
   delay(100);
+  resetEncoders();
 }
 
 void testMotors() {

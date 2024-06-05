@@ -5,21 +5,12 @@ int calcLoopDelay() {
 }
 
 float calcEncodersError() {
-  int error = countLeft - countRight;
+  int error = (targetLeft - countLeft) - (targetRight - countRight);
   
   float pTerm = error * kPEnc;
   float dTerm = (error - errOldEnc) * kDEnc;
   dTerm /= loopInterval;
   float totError = pTerm + dTerm;
-  
-  if (DEBUG) {
-    Serial.print(" enc left ");
-    Serial.print(countLeft);
-    Serial.print(" enc right ");
-    Serial.print(countRight);
-    Serial.print(" enc err ");
-    Serial.print(totError);
-  }
   
   errOldEnc = error;
   return totError;
@@ -63,20 +54,25 @@ float calcSensorError() {
   return totError;
 }
 
-int calcError(bool calcSensors) {
-  float encoderError = calcEncodersError();
+void correctSpeed(bool calcSensors) {
+  float encoderError = 0;
   float sensorError = 0;
+  
+  vLeft = V;
+  vRight = V;
+  encoderError = calcEncodersError();
   
   if (calcSensors) {
     sensorError = calcSensorError();
   }
   
-  float totError = encoderError + sensorError;
+  float totError = sensorError - encoderError;
+
+  vLeft -= totError;
+  vRight += totError;
   
-  if (DEBUG) {
-    Serial.print(" total err ");
+  if(DEBUG) {
+    Serial.print(" totError ");
     Serial.println(totError);
   }
-  
-  return totError;
 }

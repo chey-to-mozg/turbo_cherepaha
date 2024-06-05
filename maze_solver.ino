@@ -210,7 +210,9 @@ void setWalls() {
 #define _turnRight 2
 #define _start 3
 
-ArduinoQueue<int> path(mazeShapeY * mazeShapeX * 2); // multiply by 2 for turns
+uint8_t path[mazeShapeY * mazeShapeX] = {0};
+uint16_t pathIndex = 0;
+uint16_t pathLen = 0;
 
 void calcShortestPath() {
   for (int y = 0; y < mazeShapeY; y++) {
@@ -221,8 +223,12 @@ void calcShortestPath() {
       }
     }
   }
+  
   initMaze(false);
-  path.enqueue(_start);
+  
+  path[pathIndex] = _start;
+  pathIndex += 1;
+  
   int8_t curPosY = robotPositionYStart;
   int8_t curPosX = robotPositionXStart;
   int curVal = maze[curPosY][curPosX];
@@ -254,20 +260,21 @@ void calcShortestPath() {
           if (DEBUG) {
             Serial.println("Forward");
           }
-          path.enqueue(_moveForward);
+          path[pathIndex] = _moveForward;
         }
-        if (directionDiff == 1) {
+        else if (directionDiff == 1) {
           if (DEBUG) {
             Serial.println("Left");
           }
-          path.enqueue(_turnLeft);
+          path[pathIndex] = _turnLeft;
         }
-        if (directionDiff == 3) {
+        else if (directionDiff == 3) {
           if (DEBUG) {
             Serial.println("Right");
           }
-          path.enqueue(_turnRight);
+          path[pathIndex] = _turnRight;
         }
+        pathIndex += 1;
         curPosY = neighbour.y;
         curPosX = neighbour.x;
         curVal = maze[neighbour.y][neighbour.x];
@@ -286,26 +293,34 @@ void calcShortestPath() {
       }
     }
   }
+  path[pathIndex] = _moveForward;
+  pathIndex += 1;
+  pathLen = pathIndex;
 }
 
 void decideMove() {
   if (robotPositionY == finishPositionY && robotPositionX == finishPositionX){
-    motorsStop();
     if (DEBUG) {
       Serial.println("Finish");
     }
+    else {
+      forward(encoderPerHalfCell);
+      motorsStop();
+    }
     isFinish = true;
     calcShortestPath();
-    resetEncoders();
     return;
   }
   if (isStart) {
+    onStart = true;
     if (DEBUG) {
       Serial.println("To center");
     }
     else {
       forward(encodersToCenter);
+      isCenter = true;
     }
+    onStart = false;
     isStart = false;
   }
   int curVal = maze[robotPositionY][robotPositionX];
@@ -319,7 +334,13 @@ void decideMove() {
       waitToStart();
     }
     else {
-      forward(encodersPerCell);
+      if (isCenter) {
+        forward(encoderPerHalfCell);
+        isCenter = false;
+      }
+      else {
+        forward(encodersPerCell);
+      }
     }
     movePosition();
   }
@@ -357,8 +378,7 @@ void decideMove() {
         waitToStart();
       }
       else {
-        turnTank(true);
-        forward(encodersPerCell);
+        turnCurve(true);
       }
       turnDirection(true);
       movePosition();
@@ -370,16 +390,18 @@ void decideMove() {
         waitToStart();
       }
       else {
+        forward(encoderPerHalfCell);
         turnTank(true);
         turnTank(true);
         if (walls[robotPositionY][robotPositionX] & wallMasks[robotDirection])
         {
-          backward(encodersToCorrect);
+          backward(encoderPerHalfCell);
+          isStart = true;
         }
       }
       turnDirection(true);
       turnDirection(true);
-      isStart = true;
+      
     }
     if (directionDiff == 3) {
       // turn right
@@ -388,37 +410,43 @@ void decideMove() {
         waitToStart();
       }
       else {
-        turnTank(false);
-        forward(encodersPerCell);  
+          turnCurve(false);
       }
       turnDirection(false);
       movePosition();
     }
   }
-  //motorsStop();
   setWalls();
 }
 
 void runShort() {
-  while (!path.isEmpty()) {
-    int dir = path.dequeue();
+  onStart = true;
+  pathIndex = 0;
+  while (pathIndex < pathLen) {
+    uint8_t dir = path[pathIndex];
+    pathIndex += 1;
     if (dir == _moveForward) {
-      forward(encodersPerCell);
+      if (isCenter) {
+        forward(encoderPerHalfCell);
+        isCenter = false;
+      }
+      else {
+        forward(encodersPerCell);
+      }
     }
     else if (dir == _turnLeft) {
-      turnTank(true);
-      forward(encodersPerCell);
+      turnCurve(true);
     }
     else if (dir == _turnRight) {
-      turnTank(false);
-      forward(encodersPerCell);
+      turnCurve(false);
     }
     else if (dir == _start) {
       forward(encodersToCenter);
+      isCenter = true;
+      onStart = false;
     }
   }
   motorsStop();
-  exit(0);
 }
 
 char directionToChar[4] = {'^', '>', 'v', '<'};
@@ -466,4 +494,23 @@ void printMaps() {
     Serial.println("");
   }
   Serial.println("=========================");
+}
+
+
+//#define _moveForward 0
+//#define _turnLeft 1
+//#define _turnRight 2
+//#define _start 3
+void setPath() {
+  path[0] = 3;
+  path[1] = 0;
+  path[2] = 1;
+  path[3] = 1;
+  path[4] = 2;
+  path[5] = 2;
+  path[6] = 0;
+  path[7] = 2;
+  path[8] = 0;
+  path[9] = 0;
+  pathLen = 10;
 }

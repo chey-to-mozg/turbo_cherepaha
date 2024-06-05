@@ -17,9 +17,11 @@
 
 #define volt A7
 #define alarm 13
+#define blue A4
+#define white A5
 
 byte pinIns[7] = {encLeft, encRight, sensorLeft, sensorRight, sensorFront, button, volt};
-byte pinOuts[7] = {pwmLeft, pwmRight, in1Left, in2Left, in1Right, in2Right, alarm};
+byte pinOuts[9] = {pwmLeft, pwmRight, in1Left, in2Left, in1Right, in2Right, alarm, blue, white};
 
 // enable prints, prints should be formatted and also need to add delay in debug mode
 
@@ -32,7 +34,11 @@ byte pinOuts[7] = {pwmLeft, pwmRight, in1Left, in2Left, in1Right, in2Right, alar
 
 const bool DEBUG = false;
 
-// maze solving parameters
+const int _buttonDelay = 300; // to not count random signals
+
+// ** maze parameters ** //
+
+const int wallLength = 180;
 
 const int mazeShapeY = 3;
 const int mazeShapeX = 3;
@@ -41,14 +47,17 @@ const int8_t robotPositionYStart = 2;
 const int8_t robotPositionXStart = 2;
 
 const int8_t finishPositionY = 0;
-const int8_t finishPositionX = 0;
+const int8_t finishPositionX = 2;
 
 int8_t robotPositionY = robotPositionYStart;
 int8_t robotPositionX = robotPositionXStart;
 
-const uint8_t robotDirectionStart = directionU;
+uint8_t robotDirectionStart = directionU;
 
 uint8_t robotDirection = robotDirectionStart;
+
+// maze solving parameters
+
 // 4 directions, cahnges for 2 args: y, x
 int8_t  positionChanges[4][2] = {
   -1, 0,
@@ -56,11 +65,6 @@ int8_t  positionChanges[4][2] = {
   1, 0,
   0, -1,
 };
-
-int8_t positionYHistory[100] = {0};
-int8_t positionXHistory[100] = {0};
-char ditectionHistory[100] = {0};
-int historyIndex = 0;
 
 int maze[mazeShapeY][mazeShapeX] = {0};
 bool visited[mazeShapeY][mazeShapeX] = {0};
@@ -89,42 +93,60 @@ uint8_t walls[mazeShapeY][mazeShapeX] = {0}; // each wall value represent walls 
 16 15 14 15 16 17 18 19 20 21 22
  */
 
-// constants
-const int sensorValuesPerMillimeter = 3;  // every 3 values is 1 millimeter. Voltage function is not linear, need to find proper function for normalization
-const int sensorSideWallDetect = 100;  // in millineters
-const int sensorFrontWallDetect = 120;
+
+// ** sensors ** //
+
+const int sensorReads = 5;
+
+//const int sensorValuesPerMillimeter = 3;  // every 3 values is 1 millimeter. Voltage function is not linear, need to find proper function for normalization
+const int sensorSideWallDetect = 80;  // in millineters
+const int sensorFrontWallDetect = 150;
 const int sensorFrontWallTreshold = 35;
-
-const int _buttonDelay = 300; // to not count random signals
-
-const int Vdefault = 50;
-
-const float pi = 3.14;
-
-const int wheelR = 23;  // mm
-const float degreePerEncoder = 1.2;  // degrees
-const float encoderPerMillimeter = 180 / ((pi * wheelR) * degreePerEncoder);  // length of sector is L = Pi * R * alpha / 180   ||  1 encoder = 23 millimeters 
-const int encodersPerTankTurn = (180 / degreePerEncoder); // each whell should turn on 180 degrees
-
-const float kPEnc = 0;
-const float kDEnc = 0;
-const float kPSens = 0;
-const float kDSens = 0;
 
 int refDistanceLeft = 0;
 int refDistanceRight = 0;
 
-const int wallLength = 180;
-const int encodersPerCell = wallLength * encoderPerMillimeter;
+// ** reference parameters ** //
+
+const float pi = 3.14;
+const int wheelR = 23;  // mm
 
 const int robotOffset = 50;
 const int distToCenter = wallLength / 2 - robotOffset;
+const int smallTurnCircle = 45;
+const int smallCircleDistance = pi * smallTurnCircle * 90 / 180;
+const int bigTurnCircle = 130;
+const int bigCircleDistance = pi * bigTurnCircle * 90 / 180;
+const int distCenterToWheel = 39;
+
+// ** encoder calculations ** //
+
+const float degreePerEncoder = 1.2;  // degrees
+
+const float encoderPerMillimeter = 180 / ((pi * wheelR) * degreePerEncoder);  // length of sector is L = Pi * R * alpha / 180   ||  1 encoder = 23 millimeters 
+
+const int encodersPerTankTurn = pi * distCenterToWheel * 90 / 180 * encoderPerMillimeter; // each wheel should move 90 degree sector
+const int encodersPerCell = wallLength * encoderPerMillimeter;
+const int encoderPerHalfCell = encodersPerCell / 2;
 const int encodersToCenter = distToCenter * encoderPerMillimeter;
+const int encodersPerSmallCircle = smallCircleDistance * encoderPerMillimeter;
+const int encodersPerBigCircle = bigCircleDistance * encoderPerMillimeter;
 
-const int encodersToCorrect = encodersToCenter * 2;
+// ** motor controls ** //
+
+const int Vdefault = 80;
+const int Vfast = 150;
+const int Vmin = 0;
+const int Vmax = 255;
+
 const int vToCorect = 50;
+const int acsSpeed = 5;
 
-const int sensorReads = 15;
+float kPEnc = 0.23; // 0.3
+float kDEnc = 0.4; // 1.2
+const float kPSens = 0.9;
+const float kDSens = 0.9;
+
 
 // varialbes to store values
 int V = Vdefault;
@@ -134,6 +156,9 @@ int errOldSens = 0;
 
 volatile int countLeft;
 volatile int countRight;
+
+int targetLeft = 0;
+int targetRight = 0;
 
 bool dirLeft = true;
 bool dirRight = true;
@@ -146,8 +171,6 @@ int vRight = 0;
 int vLeftCur = 0;
 int vRightCur = 0;
 
-int acsSpeed = 10;
-
 int distanceLeft = 0;
 int distanceRight = 0;
 int distanceFront = 0;
@@ -159,6 +182,7 @@ bool isWallFront = false;
 bool isStart = true;
 bool isFinish = false;
 bool isBreak = false;
+bool isCenter = false;
 
 long prevClock = millis();
 long loopInterval = 1;
@@ -175,24 +199,70 @@ void printConfig() {
   
   Serial.print("encodersToCenter: ");
   Serial.println(encodersToCenter);
-  
-  Serial.print("encodersToCorrect: ");
-  Serial.println(encodersToCorrect);
+
+  Serial.print("encodersPerSmallCircle: ");
+  Serial.println(encodersPerSmallCircle);
+
+  Serial.print("encodersPerBigCircle: ");
+  Serial.println(encodersPerBigCircle);
+
+  Serial.print("kPEnc: ");
+  Serial.println(kPEnc);
+
+  Serial.print("kDEnc: ");
+  Serial.println(kDEnc);
+
+  Serial.print("kPSens: ");
+  Serial.println(kPSens);
+
+  Serial.print("kDSens: ");
+  Serial.println(kDSens);
   
 }
 
-void waitToStart() {
+void waitToPrepare() {
   bool signal = false;
   while (true) {
     readSensors();
     if (distanceFront < 50) {
-      signal = true;
-      digitalWrite(alarm, signal);
+      digitalWrite(white, true);
       delay(1500);
+      digitalWrite(white, false);
       break;
     }
     signal = !signal;
-    digitalWrite(alarm, signal);
+    digitalWrite(white, signal);
+    delay(500);
+  }
+}
+
+void waitToStart() {
+  bool signal = false;
+  int led = white;
+  while (true) {
+    readSensors();
+    if (distanceFront < 50) {
+      digitalWrite(led, true);
+      delay(1500);
+      digitalWrite(led, false);
+      break;
+    }
+    if (countLeft > 75) {
+      digitalWrite(led, false);
+      if (led == white) {
+        led = blue;
+        robotDirectionStart = directionL;
+        robotDirection = robotDirectionStart;
+      }
+      else {
+        led = white;
+        robotDirectionStart = directionU;
+        robotDirection = robotDirectionStart;
+      }
+      resetEncoders();
+    }
+    signal = !signal;
+    digitalWrite(led, signal);
     delay(500);
   }
 }
@@ -202,13 +272,15 @@ void pingOnError() {
   while (true) {
     signal = !signal;
     digitalWrite(alarm, signal);
+    digitalWrite(white, signal);
+    digitalWrite(blue, signal);
     delay(1000);
   }
 }
 
 void pingOnFinish() {
   bool signal = false;
-  while (countLeft < 3) {
+  while (countLeft < 75) {
     signal = !signal;
     digitalWrite(alarm, signal);
     delay(1000);
@@ -220,7 +292,7 @@ void setup() {
     pinMode(pinIns[i], INPUT);
   }
 
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 9; i++) {
     pinMode(pinOuts[i], OUTPUT);
   }
 
@@ -237,22 +309,46 @@ void setup() {
   visited[robotPositionY][robotPositionX] = true;
   waitToStart();
   initRefDistance();
-  waitToStart();
   setWalls();
 }
 
 void loop() {
-  checkVoltage();
-  decideMove();
-  //printWalls();
-  if (isBreak) {
-    exit(1);
-  }
-  if (isFinish) {
-    pingOnFinish();
-    waitToStart();
-    runShort();
-    exit(0);
-  }  
+//  checkVoltage();
+//  decideMove();
+//  //printWalls();
+//  if (isBreak) {
+//    pingOnError();
+//  }
+//  if (isFinish) {
+//    V = Vfast;
+//    while (true) {
+//      pingOnFinish();
+//      waitToStart();
+//      runShort();
+//    }
+//  }
+    setPath();
+    V = Vfast;
+    kPEnc = 0.6; // 0.3
+    kDEnc = 0.4; // 1.2
+    while (true) {
+      pingOnFinish();
+      waitToStart();
+      runShort();
+    }
+//  turnTank(true);
+//  motorsStop();
+//  delay(1000);
+//  turnTank(true);
+//  motorsStop();
+//  delay(2000);
+//  turnTank(true);
+//  turnTank(true);
+//forward(encodersToCenter);
+//forward(encoderPerHalfCell);
+//forward(encodersPerCell);
+//  motorsStop();
+//  delay(3000);
 //  testSensors();
+//testMotors();
 }
