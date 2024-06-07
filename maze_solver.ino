@@ -421,10 +421,20 @@ void decideMove() {
 
 void runShort() {
   onStart = true;
+  sensorReads = 3;
   pathIndex = 0;
   while (pathIndex < pathLen) {
     uint8_t dir = path[pathIndex];
+
+    if (pathIndex + 1 < pathLen && path[pathIndex + 1] != _moveForward) {
+      V = VfastTurn;
+    }
+    else {
+      V = Vfast;
+    }
+
     pathIndex += 1;
+    
     if (dir == _moveForward) {
       if (isCenter) {
         forward(encoderPerHalfCell);
@@ -435,9 +445,11 @@ void runShort() {
       }
     }
     else if (dir == _turnLeft) {
+      V = Vdefault;
       turnCurve(true);
     }
     else if (dir == _turnRight) {
+      V = Vdefault;
       turnCurve(false);
     }
     else if (dir == _start) {
@@ -446,6 +458,8 @@ void runShort() {
       onStart = false;
     }
   }
+  V = Vdefault;
+  forward(encodersPerCell);
   motorsStop();
 }
 

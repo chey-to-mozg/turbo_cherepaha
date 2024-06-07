@@ -46,8 +46,8 @@ const int mazeShapeX = 3;
 const int8_t robotPositionYStart = 2;
 const int8_t robotPositionXStart = 2;
 
-const int8_t finishPositionY = 0;
-const int8_t finishPositionX = 2;
+const int8_t finishPositionY = 1;
+const int8_t finishPositionX = 0;
 
 int8_t robotPositionY = robotPositionYStart;
 int8_t robotPositionX = robotPositionXStart;
@@ -96,7 +96,7 @@ uint8_t walls[mazeShapeY][mazeShapeX] = {0}; // each wall value represent walls 
 
 // ** sensors ** //
 
-const int sensorReads = 5;
+int sensorReads = 10;
 
 //const int sensorValuesPerMillimeter = 3;  // every 3 values is 1 millimeter. Voltage function is not linear, need to find proper function for normalization
 const int sensorSideWallDetect = 80;  // in millineters
@@ -115,8 +115,10 @@ const int robotOffset = 50;
 const int distToCenter = wallLength / 2 - robotOffset;
 const int smallTurnCircle = 45;
 const int smallCircleDistance = pi * smallTurnCircle * 90 / 180;
-const int bigTurnCircle = 130;
-const int bigCircleDistance = pi * bigTurnCircle * 90 / 180;
+const int bigTurnCircleLeft = 127;
+const int bigTurnCircleRight = 129;
+const int bigCircleDistanceLeft = pi * bigTurnCircleLeft * 90 / 180;
+const int bigCircleDistanceRight = pi * bigTurnCircleRight * 90 / 180;
 const int distCenterToWheel = 39;
 
 // ** encoder calculations ** //
@@ -130,20 +132,25 @@ const int encodersPerCell = wallLength * encoderPerMillimeter;
 const int encoderPerHalfCell = encodersPerCell / 2;
 const int encodersToCenter = distToCenter * encoderPerMillimeter;
 const int encodersPerSmallCircle = smallCircleDistance * encoderPerMillimeter;
-const int encodersPerBigCircle = bigCircleDistance * encoderPerMillimeter;
+const int encodersPerBigCircleLeft = bigCircleDistanceLeft * encoderPerMillimeter;
+const int encodersPerBigCircleRight = bigCircleDistanceRight * encoderPerMillimeter;
 
 // ** motor controls ** //
 
 const int Vdefault = 80;
 const int Vfast = 150;
+const int VfastTurn = 100;
 const int Vmin = 0;
 const int Vmax = 255;
 
 const int vToCorect = 50;
 const int acsSpeed = 5;
 
-float kPEnc = 0.23; // 0.3
-float kDEnc = 0.4; // 1.2
+const float kPEncDefault = 0.17;
+const float kPEncExtra = 0.33;
+
+float kPEnc = kPEncDefault;
+const float kDEnc = 0.1;
 const float kPSens = 0.9;
 const float kDSens = 0.9;
 
@@ -203,8 +210,11 @@ void printConfig() {
   Serial.print("encodersPerSmallCircle: ");
   Serial.println(encodersPerSmallCircle);
 
-  Serial.print("encodersPerBigCircle: ");
-  Serial.println(encodersPerBigCircle);
+  Serial.print("encodersPerBigCircleLeft: ");
+  Serial.println(encodersPerBigCircleLeft);
+
+  Serial.print("encodersPerBigCircleRight: ");
+  Serial.println(encodersPerBigCircleRight);
 
   Serial.print("kPEnc: ");
   Serial.println(kPEnc);
@@ -217,7 +227,6 @@ void printConfig() {
 
   Serial.print("kDSens: ");
   Serial.println(kDSens);
-  
 }
 
 void waitToPrepare() {
@@ -265,6 +274,7 @@ void waitToStart() {
     digitalWrite(led, signal);
     delay(500);
   }
+  resetEncoders();
 }
 
 void pingOnError() {
@@ -303,7 +313,7 @@ void setup() {
   EICRA |= (1 << ISC01) | ( 1 << ISC00 );  // RISING edge INT0
 
   Serial.begin(9600);
-  resetEncoders();
+  
   printConfig();
   initMaze(true);
   visited[robotPositionY][robotPositionX] = true;
@@ -315,7 +325,6 @@ void setup() {
 void loop() {
   checkVoltage();
   decideMove();
-  //printWalls();
   if (isBreak) {
     pingOnError();
   }
@@ -327,28 +336,4 @@ void loop() {
       runShort();
     }
   }
-//    setPath();
-//    V = Vfast;
-//    kPEnc = 0.6; // 0.3
-//    kDEnc = 0.4; // 1.2
-//    while (true) {
-//      pingOnFinish();
-//      waitToStart();
-//      runShort();
-//    }
-//  turnTank(true);
-//  motorsStop();
-//  delay(1000);
-//  turnTank(true);
-//  motorsStop();
-//  delay(2000);
-//  turnTank(true);
-//  turnTank(true);
-//forward(encodersToCenter);
-//forward(encoderPerHalfCell);
-//forward(encodersPerCell);
-//  motorsStop();
-//  delay(3000);
-//  testSensors();
-//testMotors();
 }

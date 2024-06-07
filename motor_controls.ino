@@ -163,10 +163,10 @@ void forwardCurve(int targetL, int targetR) {
 
 void turnCurve(bool isLeft) {
   if (isLeft) {
-    forwardCurve(encodersPerSmallCircle, encodersPerBigCircle);
+    forwardCurve(encodersPerSmallCircle, encodersPerBigCircleLeft);
   }
   else {
-    forwardCurve(encodersPerBigCircle, encodersPerSmallCircle);
+    forwardCurve(encodersPerBigCircleRight, encodersPerSmallCircle);
   }
 }
 
