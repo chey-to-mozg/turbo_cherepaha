@@ -100,7 +100,7 @@ bool checkEncoders(bool strict) {
     if (distanceFront <= sensorFrontWallTreshold) {
       return false;
     }
-    // in case one counter reach goal we can move futher
+    // in case one counter reach goal we can move further
     return countLeft < targetLeft && countRight < targetRight;
   }
 }

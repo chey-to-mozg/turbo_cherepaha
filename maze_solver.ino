@@ -317,9 +317,6 @@ void decideMove() {
     }
     else {
       forward(encodersToCenter);
-//      if (smoothSearch) {
-//        isCenter = true;
-//      }
     }
     onStart = false;
     isStart = false;
@@ -440,7 +437,6 @@ void runShort() {
     
     if (dir == _moveForward) {
       if (isCenter) {
-//        forward(encoderPerHalfCell);
         forward(encodersPerCell);
         isCenter = false;
       }
@@ -450,13 +446,11 @@ void runShort() {
     }
     else if (dir == _turnLeft) {
       V = Vdefault;
-//      turnCurve(true);
        turnTank(true);
        forward(encodersPerCell);
     }
     else if (dir == _turnRight) {
       V = Vdefault;
-//      turnCurve(false);
       turnTank(false);
        forward(encodersPerCell);
     }

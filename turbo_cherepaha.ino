@@ -23,31 +23,26 @@
 byte pinIns[7] = {encLeft, encRight, sensorLeft, sensorRight, sensorFront, button, volt};
 byte pinOuts[9] = {pwmLeft, pwmRight, in1Left, in2Left, in1Right, in2Right, alarm, blue, white};
 
-// enable prints, prints should be formatted and also need to add delay in debug mode
-
-// fixme finish can be 2x2
-
 #define directionU 0
 #define directionR 1
 #define directionD 2
 #define directionL 3
 
-const bool DEBUG = false;
+const bool DEBUG = false; // no prints with DEBUG == false, to enable floodfill maps prints and disable motors set DEBUG to true
 
 const int _buttonDelay = 300; // to not count random signals
 
 // ** maze parameters ** //
 
-const int wallLength = 180;
+const int wallLength = 182;
 
-const int mazeShapeY = 3;
-const int mazeShapeX = 3;
+const int mazeShapeY = 11;
+const int mazeShapeX = 11;
 
-const int8_t robotPositionYStart = 2;
-const int8_t robotPositionXStart = 2;
-
-const int8_t finishPositionY = 1;
-const int8_t finishPositionX = 0;
+const int8_t robotPositionYStart = 10;
+const int8_t robotPositionXStart = 10;
+const int8_t finishPositionY = 5;
+const int8_t finishPositionX = 5;
 
 int8_t robotPositionY = robotPositionYStart;
 int8_t robotPositionX = robotPositionXStart;
@@ -74,34 +69,17 @@ uint8_t walls[mazeShapeY][mazeShapeX] = {0}; // each wall value represent walls 
  * |   |
  * | | |
  * |0|_|
- * robot in position 0, 0 (marked as 0), for this case walls[0][0] = 1101|0101 (we have information about Up wall, Right wall, Left wall i.e. 1101, and only 2 walls marked is Left wall and Right wall i.e. 0101)
+ * robot in position 0, 0 (marked as 0), for this case walls[0][0] = 1101|0101 (we have information about Up wall, Right wall, Left wall i.e. 1101, 
+ * and only 2 walls marked: Left wall and Right wall i.e. 0101)
 */
-
-/*
- * test maze 
- * 
-10 9  8  7 8  9 10 11 12 13 14 
-9  8  7  6 11 10 11 12 13 14 15 
-8  7  6  5 4 11 12 13 14 15 16 
-9  8  9  6 3  2 13 14 15 16 17 
-10 9  8  7 12 1 14 15 16 17 18 
-11 10 9 10 11 0 15 16 17 18 23 
-12 11 10 11 16 15 16 17 18 19 22 
-13 12 11 12 13 14 15 16 17 18 21 
-14 13 12 13 14 17 16 17 18 19 20 
-15 14 13 14 15 16 17 18 19 20 21 
-16 15 14 15 16 17 18 19 20 21 22
- */
-
 
 // ** sensors ** //
 
 int sensorReads = 10;
 
-//const int sensorValuesPerMillimeter = 3;  // every 3 values is 1 millimeter. Voltage function is not linear, need to find proper function for normalization
 const int sensorSideWallDetect = 80;  // in millineters
-const int sensorFrontWallDetect = 150;
-const int sensorFrontWallTreshold = 35;
+const int sensorFrontWallDetect = 135;
+const int sensorFrontWallTreshold = 40; //
 
 int refDistanceLeft = 0;
 int refDistanceRight = 0;
@@ -115,35 +93,33 @@ const int robotOffset = 50;
 const int distToCenter = wallLength / 2 - robotOffset;
 const int smallTurnCircle = 45;
 const int smallCircleDistance = pi * smallTurnCircle * 90 / 180;
-const int bigTurnCircleLeft = 127;
-const int bigTurnCircleRight = 129;
-const int bigCircleDistanceLeft = pi * bigTurnCircleLeft * 90 / 180;
-const int bigCircleDistanceRight = pi * bigTurnCircleRight * 90 / 180;
+const int bigTurnCircle = 130;
+const int bigCircleDistance = pi * bigTurnCircle * 90 / 180;
 const int distCenterToWheel = 39;
 
 // ** encoder calculations ** //
 
 const float degreePerEncoder = 1.2;  // degrees
 
-const float encoderPerMillimeter = 180 / ((pi * wheelR) * degreePerEncoder);  // length of sector is L = Pi * R * alpha / 180   ||  1 encoder = 23 millimeters 
+const float encoderPerMillimeter = 180 / ((pi * wheelR) * degreePerEncoder);  // length of sector is L = Pi * R * alpha / 180
 
-const int encodersPerTankTurn = pi * distCenterToWheel * 90 / 180 * encoderPerMillimeter; // each wheel should move 90 degree sector
+const int encodersPerTankTurn = pi * distCenterToWheel * 90 / 180 * encoderPerMillimeter; // each wheel should move 90 degree sector || Double check on wheels with another R
 const int encodersPerCell = wallLength * encoderPerMillimeter;
 const int encoderPerHalfCell = encodersPerCell / 2;
 const int encodersToCenter = distToCenter * encoderPerMillimeter;
 const int encodersPerSmallCircle = smallCircleDistance * encoderPerMillimeter;
-const int encodersPerBigCircleLeft = bigCircleDistanceLeft * encoderPerMillimeter;
-const int encodersPerBigCircleRight = bigCircleDistanceRight * encoderPerMillimeter;
+const int encodersPerBigCircle = bigCircleDistance * encoderPerMillimeter;
 
 // ** motor controls ** //
 
 const int Vdefault = 80;
 const int Vfast = 150;
+int VfastForward = Vfast;
 const int VfastTurn = 100;
 const int Vmin = 0;
 const int Vmax = 255;
 
-const int vToCorect = 50;
+const int vToCorect = Vdefault;
 const int acsSpeed = 5;
 
 const float kPEncDefault = 0.17;
@@ -207,15 +183,6 @@ void printConfig() {
   Serial.print("encodersToCenter: ");
   Serial.println(encodersToCenter);
 
-  Serial.print("encodersPerSmallCircle: ");
-  Serial.println(encodersPerSmallCircle);
-
-  Serial.print("encodersPerBigCircleLeft: ");
-  Serial.println(encodersPerBigCircleLeft);
-
-  Serial.print("encodersPerBigCircleRight: ");
-  Serial.println(encodersPerBigCircleRight);
-
   Serial.print("kPEnc: ");
   Serial.println(kPEnc);
 
@@ -227,22 +194,6 @@ void printConfig() {
 
   Serial.print("kDSens: ");
   Serial.println(kDSens);
-}
-
-void waitToPrepare() {
-  bool signal = false;
-  while (true) {
-    readSensors();
-    if (distanceFront < 50) {
-      digitalWrite(white, true);
-      delay(1500);
-      digitalWrite(white, false);
-      break;
-    }
-    signal = !signal;
-    digitalWrite(white, signal);
-    delay(500);
-  }
 }
 
 void waitToStart() {
@@ -294,6 +245,18 @@ void pingOnFinish() {
     signal = !signal;
     digitalWrite(alarm, signal);
     delay(1000);
+    if (countRight > 75) {
+      if (VfastForward == Vfast) {
+        VfastForward = VfastTurn;
+      }
+      else {
+        VfastForward = Vfast;
+      }
+      digitalWrite(white, 1);
+      delay(1000);
+      digitalWrite(white, 0);
+      resetEncoders();
+    }
   }
 }
 
