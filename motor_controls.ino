@@ -1,4 +1,4 @@
-// right encoder interrupt
+  // right encoder interrupt
 ISR( INT0_vect )
 {
   int count = countRight;
@@ -163,10 +163,10 @@ void forwardCurve(int targetL, int targetR) {
 
 void turnCurve(bool isLeft) {
   if (isLeft) {
-    forwardCurve(encodersPerSmallCircle, encodersPerBigCircleLeft);
+    forwardCurve(encodersPerSmallCircle, encodersPerBigCircle);
   }
   else {
-    forwardCurve(encodersPerBigCircleRight, encodersPerSmallCircle);
+    forwardCurve(encodersPerBigCircle, encodersPerSmallCircle);
   }
 }
 
@@ -242,4 +242,32 @@ void testMotors() {
   changeDirLeft();
   changeDirRight();
   delay(1000);
+}
+
+void testMoves() {
+  forward(encodersToCenter);
+  forward(encodersPerCell);
+  motorsStop();
+  waitToStart();
+  
+  turnTank(true);
+  motorsStop();
+  delay(1000);
+  turnTank(true);
+  motorsStop();
+  delay(1000);
+  turnTank(false);
+  motorsStop();
+  delay(1000);
+  turnTank(false);
+  motorsStop();
+  waitToStart();
+
+  turnCurve(true);
+  motorsStop();
+  waitToStart();
+
+  turnCurve(false);
+  motorsStop();
+  waitToStart();
 }

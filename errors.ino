@@ -33,8 +33,9 @@ float calcSensorError() {
   }
   
   float pTerm = error * kPSens;
-  float dTerm = (error - errOldEnc) * kDSens;
+  float dTerm = (error - errOldSens) * kDSens;
   dTerm /= loopInterval;
+  
   float totError = pTerm + dTerm;
   
   if (DEBUG) {
@@ -48,6 +49,10 @@ float calcSensorError() {
     Serial.print(isWallRight);
     Serial.print(" sens error ");
     Serial.print(totError);
+    Serial.print(" pTerm ");
+    Serial.print(pTerm);
+    Serial.print(" dTerm ");
+    Serial.print(dTerm);
   }
   
   errOldSens = error;

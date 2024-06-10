@@ -88,13 +88,21 @@ void testSensors() {
   readSensors();
   Serial.print(" left sensor: ");
   Serial.print(distanceLeft);
+  Serial.print(" left wall: ");
+  Serial.print(isWallLeft);
+  
   Serial.print(" right sensor:");
   Serial.print(distanceRight);
+  Serial.print(" right wall:");
+  Serial.print(isWallRight);
+  
   Serial.print(" front sensor: ");
   Serial.print(distanceFront);
+  Serial.print(" front wall: ");
+  Serial.println(isWallFront);
 
-  Serial.print(" Button: ");
-  Serial.println(buttonPressed());
+//  Serial.print(" Button: ");
+//  Serial.println(buttonPressed());
   delay(100);
 }
 

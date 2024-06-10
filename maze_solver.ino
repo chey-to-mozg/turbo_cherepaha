@@ -70,7 +70,7 @@ struct Pair {
 
 ArduinoQueue<Pair> neighbours(4);
 
-void calcNeighbours(int8_t y, int8_t x, bool strict = true) {
+void calcNeighbours(int8_t y, int8_t x, bool strict) {
   while(!neighbours.isEmpty()) {
     neighbours.dequeue();
   }
@@ -93,17 +93,16 @@ void calcNeighbours(int8_t y, int8_t x, bool strict = true) {
 }
 
 void initMaze(bool reset) {
-  if (reset) {
-    for (int y = 0; y < mazeShapeY; y++) {
-      for (int x = 0; x < mazeShapeX; x++) {
-        maze[y][x] = -1;
-      }
+  for (int y = 0; y < mazeShapeY; y++) {
+    for (int x = 0; x < mazeShapeX; x++) {
+      maze[y][x] = -1;
     }
   }
+
   bool _visited[mazeShapeY][mazeShapeX] = {0};
   ArduinoQueue<Pair> positions(mazeShapeX * mazeShapeY);
   
-  calcNeighbours(finishPositionY, finishPositionX);
+  calcNeighbours(finishPositionY, finishPositionX, !reset);
   while(!neighbours.isEmpty()) {
     Pair neighbour = neighbours.dequeue();
     positions.enqueue(neighbour);
@@ -118,7 +117,7 @@ void initMaze(bool reset) {
     }
     _visited[pos.y][pos.x] = true;
     int minNeighbour = mazeShapeX * mazeShapeY;
-    calcNeighbours(pos.y, pos.x);
+    calcNeighbours(pos.y, pos.x, !reset);
     while(!neighbours.isEmpty()) {
       Pair neighbour = neighbours.dequeue();
       int neighbValue = maze[neighbour.y][neighbour.x];
@@ -153,7 +152,7 @@ void floodfill() {
       continue;
     }
     int minNeighbour = mazeShapeX * mazeShapeY;
-    calcNeighbours(pos.y, pos.x);
+    calcNeighbours(pos.y, pos.x, true);
     while(!neighbours.isEmpty()) {
       Pair neighbour = neighbours.dequeue();
       int neighbValue = maze[neighbour.y][neighbour.x];
@@ -235,7 +234,7 @@ void calcShortestPath() {
   uint8_t curDir = robotDirectionStart;
   
   while (curVal != 0) {
-    calcNeighbours(curPosY, curPosX);
+    calcNeighbours(curPosY, curPosX, true);
     int8_t targetDiffY = 0;
     int8_t targetDiffX = 0;
     uint8_t targetDirection = curDir;
@@ -318,7 +317,9 @@ void decideMove() {
     }
     else {
       forward(encodersToCenter);
-      isCenter = true;
+//      if (smoothSearch) {
+//        isCenter = true;
+//      }
     }
     onStart = false;
     isStart = false;
@@ -347,7 +348,7 @@ void decideMove() {
   else {
     int8_t targetDiffY = 0;
     int8_t targetDiffX = 0;
-    calcNeighbours(robotPositionY, robotPositionX);
+    calcNeighbours(robotPositionY, robotPositionX, true);
     while(!neighbours.isEmpty()) {
       Pair neighbour = neighbours.dequeue();
       if (curVal - maze[neighbour.y][neighbour.x] == 1) {
@@ -378,7 +379,8 @@ void decideMove() {
         waitToStart();
       }
       else {
-        turnCurve(true);
+        turnTank(true);
+        forward(encodersPerCell);
       }
       turnDirection(true);
       movePosition();
@@ -410,7 +412,8 @@ void decideMove() {
         waitToStart();
       }
       else {
-          turnCurve(false);
+        turnTank(false);
+        forward(encodersPerCell);
       }
       turnDirection(false);
       movePosition();
@@ -430,14 +433,15 @@ void runShort() {
       V = VfastTurn;
     }
     else {
-      V = Vfast;
+      V = VfastForward;
     }
 
     pathIndex += 1;
     
     if (dir == _moveForward) {
       if (isCenter) {
-        forward(encoderPerHalfCell);
+//        forward(encoderPerHalfCell);
+        forward(encodersPerCell);
         isCenter = false;
       }
       else {
@@ -446,11 +450,15 @@ void runShort() {
     }
     else if (dir == _turnLeft) {
       V = Vdefault;
-      turnCurve(true);
+//      turnCurve(true);
+       turnTank(true);
+       forward(encodersPerCell);
     }
     else if (dir == _turnRight) {
       V = Vdefault;
-      turnCurve(false);
+//      turnCurve(false);
+      turnTank(false);
+       forward(encodersPerCell);
     }
     else if (dir == _start) {
       forward(encodersToCenter);
@@ -515,16 +523,20 @@ void printMaps() {
 //#define _turnLeft 1
 //#define _turnRight 2
 //#define _start 3
+// test fast move
 void setPath() {
   path[0] = 3;
   path[1] = 0;
-  path[2] = 1;
-  path[3] = 1;
+  path[2] = 0;
+  path[3] = 0;
   path[4] = 2;
-  path[5] = 2;
+  path[5] = 0;
   path[6] = 0;
-  path[7] = 2;
-  path[8] = 0;
+  path[7] = 1;
+  path[8] = 2;
   path[9] = 0;
-  pathLen = 10;
+  path[10] = 0;
+  path[11] = 1;
+  path[12] = 1;
+  pathLen = 13;
 }
