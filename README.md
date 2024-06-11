@@ -1,7 +1,7 @@
 # turbo_cherepaha
 Repository for maze solving robot
 
-TODO
+TODO  
 3 режима прохождения:  
 - исследование
 - быстрый с танковым поворотом
