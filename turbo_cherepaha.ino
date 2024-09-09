@@ -1,27 +1,25 @@
 #include <ArduinoQueue.h>
 
 #define sensorLeft A0
-#define sensorFront A1
-#define sensorRight A2
-#define button 4
+#define sensorFrontLeft A2
+#define sensorFrontRight A3
+#define sensorRight A1
+#define button 10
 
-#define encRight 2
-#define encLeft 3
+#define encRight 0
+#define encLeft 1
 
-#define pwmLeft 10
-#define pwmRight 9
-#define in1Left 5
-#define in2Left 8
-#define in1Right 6
-#define in2Right 7
+#define pwmLeft 9
+#define pwmRight 6
+#define inLeft 8
+#define inRight 4
 
-#define volt A7
-#define alarm 13
-#define blue A4
-#define white A5
+#define red 5
+#define green 16
+#define blue 7
 
-byte pinIns[7] = {encLeft, encRight, sensorLeft, sensorRight, sensorFront, button, volt};
-byte pinOuts[9] = {pwmLeft, pwmRight, in1Left, in2Left, in1Right, in2Right, alarm, blue, white};
+byte pinIns[6] = {encLeft, encRight, sensorLeft, sensorRight, sensorFrontLeft, sensorFrontRight};
+byte pinOuts[7] = {pwmLeft, pwmRight, inLeft, inRight, red, green, blue};
 
 // enable prints, prints should be formatted and also need to add delay in debug mode
 
@@ -32,7 +30,7 @@ byte pinOuts[9] = {pwmLeft, pwmRight, in1Left, in2Left, in1Right, in2Right, alar
 #define directionD 2
 #define directionL 3
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 const int _buttonDelay = 300; // to not count random signals
 
@@ -43,14 +41,14 @@ const int wallLength = 180;
 const int mazeShapeY = 3;
 const int mazeShapeX = 3;
 
-const int8_t robotPositionYStart = 2;
-const int8_t robotPositionXStart = 2;
+const int8_t startPositionY = 2;
+const int8_t startPositionX = 2;
 
 const int8_t finishPositionY = 1;
 const int8_t finishPositionX = 0;
 
-int8_t robotPositionY = robotPositionYStart;
-int8_t robotPositionX = robotPositionXStart;
+int8_t robotPositionY = startPositionY;
+int8_t robotPositionX = startPositionX;
 
 uint8_t robotDirectionStart = directionU;
 
@@ -66,8 +64,8 @@ int8_t  positionChanges[4][2] = {
   0, -1,
 };
 
-int maze[mazeShapeY][mazeShapeX] = {0};
-bool visited[mazeShapeY][mazeShapeX] = {0};
+uint8_t maze[mazeShapeY][mazeShapeX] = {0};  // manhethen distance
+bool visited[mazeShapeY][mazeShapeX] = {0};  // set flag for visited celklls during search
 uint8_t walls[mazeShapeY][mazeShapeX] = {0}; // each wall value represent walls in form UNKNOWN bits: URDL | PRESENT bits: URDL
 /*
  * Example
@@ -99,8 +97,8 @@ uint8_t walls[mazeShapeY][mazeShapeX] = {0}; // each wall value represent walls 
 int sensorReads = 10;
 
 //const int sensorValuesPerMillimeter = 3;  // every 3 values is 1 millimeter. Voltage function is not linear, need to find proper function for normalization
-const int sensorSideWallDetect = 80;  // in millineters
-const int sensorFrontWallDetect = 150;
+const int sensorSideWallDetect = 100;  // in millineters
+const int sensorFrontWallDetect = 100;
 const int sensorFrontWallTreshold = 35;
 
 int refDistanceLeft = 0;
@@ -109,7 +107,7 @@ int refDistanceRight = 0;
 // ** reference parameters ** //
 
 const float pi = 3.14;
-const int wheelR = 23;  // mm
+const int wheelR = 17;  // mm
 
 const int robotOffset = 50;
 const int distToCenter = wallLength / 2 - robotOffset;
@@ -119,11 +117,14 @@ const int bigTurnCircleLeft = 127;
 const int bigTurnCircleRight = 129;
 const int bigCircleDistanceLeft = pi * bigTurnCircleLeft * 90 / 180;
 const int bigCircleDistanceRight = pi * bigTurnCircleRight * 90 / 180;
-const int distCenterToWheel = 39;
+const int distCenterToWheel = 35;
 
 // ** encoder calculations ** //
 
-const float degreePerEncoder = 1.2;  // degrees
+const int gearRatio = 50;
+const int cycleRatio = 3;
+const int totalCyclesPerWheel = gearRatio * cycleRatio;
+const float degreePerEncoder = 360 / totalCyclesPerWheel;  // degrees
 
 const float encoderPerMillimeter = 180 / ((pi * wheelR) * degreePerEncoder);  // length of sector is L = Pi * R * alpha / 180   ||  1 encoder = 23 millimeters 
 
@@ -137,7 +138,7 @@ const int encodersPerBigCircleRight = bigCircleDistanceRight * encoderPerMillime
 
 // ** motor controls ** //
 
-const int Vdefault = 80;
+const int Vdefault = 60;
 const int Vfast = 150;
 const int VfastTurn = 100;
 const int Vmin = 0;
@@ -146,13 +147,13 @@ const int Vmax = 255;
 const int vToCorect = 50;
 const int acsSpeed = 5;
 
-const float kPEncDefault = 0.17;
-const float kPEncExtra = 0.33;
+const float kPEncDefault = 1;
+const float kPEncExtra = 0;
 
 float kPEnc = kPEncDefault;
-const float kDEnc = 0.1;
-const float kPSens = 0.9;
-const float kDSens = 0.9;
+const float kDEnc = 0;
+const float kPSens = 0.2;
+const float kDSens = 0.2;
 
 
 // varialbes to store values
@@ -167,8 +168,8 @@ volatile int countRight;
 int targetLeft = 0;
 int targetRight = 0;
 
-bool dirLeft = true;
-bool dirRight = true;
+bool dirLeft = false;
+bool dirRight = false;
 
 bool onStart = true;
 bool onStop = false;
@@ -180,11 +181,16 @@ int vRightCur = 0;
 
 int distanceLeft = 0;
 int distanceRight = 0;
+int distanceFrontLeft = 0;
+int distanceFrontRight = 0;
 int distanceFront = 0;
 
 bool isWallLeft = false;
 bool isWallRight = false;
 bool isWallFront = false;
+
+bool isLeftButton = false;
+bool isRightButton = false;
 
 bool isStart = true;
 bool isFinish = false;
@@ -233,56 +239,24 @@ void waitToPrepare() {
   bool signal = false;
   while (true) {
     readSensors();
-    if (distanceFront < 50) {
-      digitalWrite(white, true);
+    if (isLeftButton) {
+      digitalWrite(red, true);
       delay(1500);
-      digitalWrite(white, false);
+      digitalWrite(red, false);
       break;
     }
     signal = !signal;
-    digitalWrite(white, signal);
+    digitalWrite(green, signal);
     delay(500);
   }
-}
-
-void waitToStart() {
-  bool signal = false;
-  int led = white;
-  while (true) {
-    readSensors();
-    if (distanceFront < 50) {
-      digitalWrite(led, true);
-      delay(1500);
-      digitalWrite(led, false);
-      break;
-    }
-    if (countLeft > 75) {
-      digitalWrite(led, false);
-      if (led == white) {
-        led = blue;
-        robotDirectionStart = directionL;
-        robotDirection = robotDirectionStart;
-      }
-      else {
-        led = white;
-        robotDirectionStart = directionU;
-        robotDirection = robotDirectionStart;
-      }
-      resetEncoders();
-    }
-    signal = !signal;
-    digitalWrite(led, signal);
-    delay(500);
-  }
-  resetEncoders();
 }
 
 void pingOnError() {
   bool signal = false;
   while (true) {
     signal = !signal;
-    digitalWrite(alarm, signal);
-    digitalWrite(white, signal);
+    digitalWrite(red, signal);
+    digitalWrite(green, signal);
     digitalWrite(blue, signal);
     delay(1000);
   }
@@ -292,48 +266,65 @@ void pingOnFinish() {
   bool signal = false;
   while (countLeft < 75) {
     signal = !signal;
-    digitalWrite(alarm, signal);
+    digitalWrite(green, signal);
     delay(1000);
   }
 }
 
 void setup() {
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 6; i++) {
     pinMode(pinIns[i], INPUT);
   }
-
-  for (int i = 0; i < 9; i++) {
+  for (int i = 0; i < 7; i++) {
     pinMode(pinOuts[i], OUTPUT);
   }
+  pinMode(button, INPUT_PULLUP);
 
   initMotors();
 
-  EIMSK |= (1 << INT0) | ( 1 << INT1 );    // Enable both interrupts
-  EICRA |= (1 << ISC11) | ( 1 << ISC10 );  // RISING edge INT1
-  EICRA |= (1 << ISC01) | ( 1 << ISC00 );  // RISING edge INT0
+  attachInterrupt(2, rightInterrupt, FALLING);
+  attachInterrupt(3, leftInterrupt, FALLING);
 
-  Serial.begin(9600);
+  if (DEBUG) {
+    Serial.begin(9600);
+    while (!Serial) ;
+  }
   
   printConfig();
-  initMaze(true);
+  floodfill(false);
   visited[robotPositionY][robotPositionX] = true;
-  waitToStart();
+  waitToPrepare();
   initRefDistance();
   setWalls();
 }
 
+void test_path() {
+  forward(encodersToCenter);
+  forward(encodersPerCell);
+  forward(encodersPerCell);
+  motorsStop();
+  turnTank(false);
+  motorsStop();
+  forward(encodersPerCell);
+  motorsStop();
+  waitToPrepare();
+}
+
 void loop() {
-  checkVoltage();
-  decideMove();
-  if (isBreak) {
-    pingOnError();
-  }
-  if (isFinish) {
-    V = Vfast;
-    while (true) {
-      pingOnFinish();
-      waitToStart();
-      runShort();
-    }
-  }
+//  test_path();
+//testMotors();
+testSensors();
+//  checkVoltage();
+//  decideMove();
+//  if (isBreak) {
+//    pingOnError();
+//  }
+//  if (isFinish) {
+//    V = Vfast;
+//    while (true) {
+//      pingOnFinish();
+//      waitToStart();
+//      runShort();
+//    }
+//  }
 }

@@ -18,7 +18,9 @@ void calcDistanceRight() {
 }
 
 void calcDistanceFront() {
-  distanceFront = calcDistance(sensorFront);
+  distanceFrontLeft = calcDistance(sensorFrontLeft);
+  distanceFrontRight = calcDistance(sensorFrontRight);
+  distanceFront = (distanceFrontLeft + distanceFrontRight) / 2;
 }
 
 bool checkLeftWall() {
@@ -33,7 +35,24 @@ int checkFrontWall() {
   isWallFront = distanceFront < sensorFrontWallDetect;
 }
 
+void readButtons() {
+  int buttonLevel = analogRead(button);
+  if (buttonLevel < 200) {
+    if (buttonLevel < 100) {
+      isRightButton = true;
+    } 
+    else {
+      isLeftButton = true;
+    }
+  }
+  else {
+    isRightButton = false;
+    isLeftButton = false;
+  }
+}
+
 void readSensors() {
+  readButtons();
   calcDistanceLeft();
   checkLeftWall();
   calcDistanceRight();
@@ -90,14 +109,16 @@ void testSensors() {
   Serial.print(distanceLeft);
   Serial.print(" right sensor:");
   Serial.print(distanceRight);
+  Serial.print(" front sensor left: ");
+  Serial.print(distanceFrontLeft);
+  Serial.print(" front sensor right: ");
+  Serial.print(distanceFrontRight);
   Serial.print(" front sensor: ");
   Serial.print(distanceFront);
 
-  Serial.print(" Button: ");
-  Serial.println(buttonPressed());
+  Serial.print(" Button left: ");
+  Serial.println(isLeftButton);
+  Serial.print(" Button right: ");
+  Serial.println(isRightButton);
   delay(100);
-}
-
-void checkVoltage() {
-  digitalWrite(alarm, (analogRead(volt) < 770 ? 1 : 0));
 }

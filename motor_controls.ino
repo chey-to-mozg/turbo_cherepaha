@@ -1,5 +1,5 @@
 // right encoder interrupt
-ISR( INT0_vect )
+void rightInterrupt()
 {
   int count = countRight;
   count++;
@@ -7,7 +7,7 @@ ISR( INT0_vect )
 }
 
 // left encoder interrupt
-ISR( INT1_vect )
+void leftInterrupt()
 {
   int count = countLeft;
   count++;
@@ -15,20 +15,17 @@ ISR( INT1_vect )
 }
 
 void initMotors() {
-  dirLeft = true;
-  dirRight = true;
-  digitalWrite(in1Left, dirLeft);
-  digitalWrite(in2Left, !dirLeft);
-  digitalWrite(in1Right, !dirRight);
-  digitalWrite(in2Right, dirRight);
+  dirLeft = false;
+  dirRight = false;
+  digitalWrite(inLeft, dirLeft);
+  digitalWrite(inRight, dirRight);
 }
 
 void changeDirLeft() {
   dirLeft = !dirLeft;
   analogWrite(pwmLeft, 0);
   delay(1);
-  digitalWrite(in1Left, dirLeft);
-  digitalWrite(in2Left, !dirLeft);
+  digitalWrite(inLeft, dirLeft);
   analogWrite(pwmLeft, vLeft);
 }
 
@@ -36,8 +33,7 @@ void changeDirRight() {
   dirRight = !dirRight;
   analogWrite(pwmRight, 0);
   delay(1);
-  digitalWrite(in1Right, !dirRight);
-  digitalWrite(in2Right, dirRight);
+  digitalWrite(inRight, dirRight);
   analogWrite(pwmRight, vRight);
 }
 
@@ -138,10 +134,10 @@ void moveStrict(int targetL, int targetR) {
 }
 
 void _forward(int targetL, int targetR, bool checkSensors) {
-  if (!dirLeft) {
+  if (dirLeft) {
     changeDirLeft();
   }
-  if (!dirRight) {
+  if (dirRight) {
     changeDirRight();
   }
   if (checkSensors) {
@@ -184,18 +180,18 @@ void backward(int target) {
 
 void turnTank(bool isLeft) {
   if (isLeft) {
-    if (dirLeft) {
-      changeDirLeft();
-    }
-    if (!dirRight) {
-      changeDirRight();
-    }
-  }
-  else {
     if (!dirLeft) {
       changeDirLeft();
     }
     if (dirRight) {
+      changeDirRight();
+    }
+  }
+  else {
+    if (dirLeft) {
+      changeDirLeft();
+    }
+    if (!dirRight) {
       changeDirRight();
     }
   }

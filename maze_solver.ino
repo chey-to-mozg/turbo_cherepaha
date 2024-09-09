@@ -92,80 +92,38 @@ void calcNeighbours(int8_t y, int8_t x, bool strict = true) {
   }
 }
 
-void initMaze(bool reset) {
-  if (reset) {
-    for (int y = 0; y < mazeShapeY; y++) {
-      for (int x = 0; x < mazeShapeX; x++) {
-        maze[y][x] = -1;
-      }
+void floodfill(bool inversed) {
+  for (int y = 0; y < mazeShapeY; y++) {
+    for (int x = 0; x < mazeShapeX; x++) {
+      maze[y][x] = 0;
     }
   }
   bool _visited[mazeShapeY][mazeShapeX] = {0};
-  ArduinoQueue<Pair> positions(mazeShapeX * mazeShapeY);
+  ArduinoQueue<Pair> positions(mazeShapeX + mazeShapeY);
+
+  if (inversed) {
+    _visited[startPositionY][startPositionX] = 1;
+    positions.enqueue({startPositionY, startPositionX});
+  }
+  else {
+    _visited[finishPositionY][finishPositionX] = 1;
+    positions.enqueue({finishPositionY, finishPositionX});
+  }
   
-  calcNeighbours(finishPositionY, finishPositionX);
-  while(!neighbours.isEmpty()) {
-    Pair neighbour = neighbours.dequeue();
-    positions.enqueue(neighbour);
-  }
-  maze[finishPositionY][finishPositionX] = 0;
-
   Pair pos;
+  
   while (!positions.isEmpty()) {
     pos = positions.dequeue();
-    if (_visited[pos.y][pos.x]) {
-      continue;
-    }
-    _visited[pos.y][pos.x] = true;
-    int minNeighbour = mazeShapeX * mazeShapeY;
+    uint8_t neighbValue = maze[pos.y][pos.x];
     calcNeighbours(pos.y, pos.x);
     while(!neighbours.isEmpty()) {
       Pair neighbour = neighbours.dequeue();
-      int neighbValue = maze[neighbour.y][neighbour.x];
-      if (neighbValue == -1){
-        positions.enqueue(neighbour);
+      if (_visited[neighbour.y][neighbour.x]) {
+        continue;
       }
-      else {
-        minNeighbour = min(minNeighbour, neighbValue);
-      }
-    }
-    if (maze[pos.y][pos.x] == -1) {
-      maze[pos.y][pos.x] = minNeighbour + 1;
-    }
-  }
-  if (DEBUG) {
-    printMaps();
-  }
-}
-
-void floodfill() {
-  if (robotPositionY == finishPositionY && robotPositionX == finishPositionX) {
-    return;
-  }
-  ArduinoQueue<Pair> positions(mazeShapeX * mazeShapeY);
-  Pair pos;
-  pos = {robotPositionY, robotPositionX};
-  positions.enqueue(pos);
-  while (!positions.isEmpty()) {
-    pos = positions.dequeue();
-    int curVal = maze[pos.y][pos.x];
-    if (curVal == 0) {
-      continue;
-    }
-    int minNeighbour = mazeShapeX * mazeShapeY;
-    calcNeighbours(pos.y, pos.x);
-    while(!neighbours.isEmpty()) {
-      Pair neighbour = neighbours.dequeue();
-      int neighbValue = maze[neighbour.y][neighbour.x];
-      minNeighbour = min(minNeighbour, neighbValue);
-    }
-    if (curVal <= minNeighbour) {
-      maze[pos.y][pos.x] = minNeighbour + 1;
-      calcNeighbours(pos.y, pos.x, false);
-      while(!neighbours.isEmpty()) {
-        Pair neighbour = neighbours.dequeue();
-        positions.enqueue(neighbour);
-      }
+      positions.enqueue(neighbour);
+      _visited[neighbour.y][neighbour.x] = 1;
+      maze[neighbour.y][neighbour.x] = neighbValue + 1;
     }
   }
   if (DEBUG) {
@@ -202,7 +160,7 @@ void setWalls() {
     }
   }
   walls[robotPositionY][robotPositionX] = curCell;
-  floodfill();
+  floodfill(false);
 }
 
 #define _moveForward 0
@@ -214,25 +172,22 @@ uint8_t path[mazeShapeY * mazeShapeX] = {0};
 uint16_t pathIndex = 0;
 uint16_t pathLen = 0;
 
-void calcShortestPath() {
-  for (int y = 0; y < mazeShapeY; y++) {
-    for (int x = 0; x < mazeShapeX; x++) {
-      if (!visited[y][x]) {
-        walls[y][x] = 255;
-        maze[y][x] = -1;
-      }
-    }
+void dfs(bool reversed = false) {
+  /*
+   * with reversed = false: search path from high to low
+   * Note: we dont need finish position, just search for cell with 0 value
+   */
+  floodfill(reversed);
+
+  if (isStart) {
+    path[pathIndex] = _start;
+    pathIndex += 1;
   }
   
-  initMaze(false);
-  
-  path[pathIndex] = _start;
-  pathIndex += 1;
-  
-  int8_t curPosY = robotPositionYStart;
-  int8_t curPosX = robotPositionXStart;
+  int8_t curPosY = robotPositionY;
+  int8_t curPosX = robotPositionX;
   int curVal = maze[curPosY][curPosX];
-  uint8_t curDir = robotDirectionStart;
+  uint8_t curDir = robotDirection;
   
   while (curVal != 0) {
     calcNeighbours(curPosY, curPosX);
@@ -308,7 +263,9 @@ void decideMove() {
       motorsStop();
     }
     isFinish = true;
-    calcShortestPath();
+    robotPositionY = startPositionY;
+    robotPositionX = startPositionX;
+    dfs();
     return;
   }
   if (isStart) {
@@ -331,7 +288,7 @@ void decideMove() {
   if ( valDiff == 1 && !(forwardWall)){
     if (DEBUG) {
       Serial.println("Forward");
-      waitToStart();
+      waitToPrepare();
     }
     else {
       if (isCenter) {
@@ -375,7 +332,7 @@ void decideMove() {
       // turn left
       if (DEBUG) {
         Serial.println("Left");
-        waitToStart();
+        waitToPrepare();
       }
       else {
         turnCurve(true);
@@ -387,7 +344,7 @@ void decideMove() {
       // turn around
       if (DEBUG) {
         Serial.println("Around");
-        waitToStart();
+        waitToPrepare();
       }
       else {
         forward(encoderPerHalfCell);
@@ -407,7 +364,7 @@ void decideMove() {
       // turn right
       if (DEBUG) {
         Serial.println("Right");
-        waitToStart();
+        waitToPrepare();
       }
       else {
           turnCurve(false);
