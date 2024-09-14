@@ -67,7 +67,7 @@ void print_sensors() {
             right = g_right_sensor;
             left_raw = g_left_sensor_raw;
             front_raw_left = g_front_sensor_raw_left;
-            front_raw_right = g_front_sensor_raw_right;
+            // front_raw_right = g_front_sensor_raw_right;
             right_raw = g_right_sensor_raw;
         }
 
@@ -88,8 +88,8 @@ void print_sensors() {
         Serial.print("^");
         Serial.print(" ");
         Serial.print(front_raw_left);
-        Serial.print(" ");
-        Serial.print(front_raw_right);
+        // Serial.print(" ");
+        // Serial.print(front_raw_right);
         Serial.print(" ");
         Serial.print(front);
 
@@ -147,16 +147,17 @@ void print_debug() {
 
 void print_profile() {
     #if DEBUG_LOGGING == 1
+        Serial.print("Enc pos ");
         Serial.print(robot_position());
-        Serial.print(' ');
+        Serial.print(" Enc ang ");
         Serial.print(robot_angle());
-        Serial.print(' ');
+        Serial.print(" f pos ");
         Serial.print(forward.position());
-        Serial.print(' ');
+        Serial.print(" f speed ");
         Serial.print(forward.speed());
-        Serial.print(' ');
+        Serial.print(" r pos ");
         Serial.print(rotation.position());
-        Serial.print(' ');
+        Serial.print(" r speed ");
         Serial.print(rotation.speed());
         Serial.print(" < pwm ");
         Serial.print(s_pwm_left);

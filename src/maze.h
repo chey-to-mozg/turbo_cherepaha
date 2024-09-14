@@ -62,7 +62,7 @@ class Maze {
         uint8_t walls[MAZE_WIDTH][MAZE_WIDTH];
         Pair mouse_position = {15, 0};
         uint8_t mouse_direction = UP;
-        Pair target = {13, 2};
+        Pair target = {15, 2};
         char path[MAZE_WIDTH * MAZE_WIDTH];
         uint8_t path_len = 0;
         uint8_t current_path_idx = 0;

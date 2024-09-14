@@ -9,19 +9,20 @@
 #include "profile.h"
 #include "maze.h"
 
-#define SEARCH_ACCELERATION 450
-#define SPIN_TURN_ACCELERATION 600
+#define SEARCH_ACCELERATION 700
+#define SPIN_TURN_ACCELERATION 1000
 #define SPEEDMAX_EXPLORE 300
 #define SPEEDMAX_PRETURN 200
 #define SPEEDMAX_STRAIGHT 500
 #define SPEEDMAX_SMOOTH_TURN 300
-#define SPEEDMAX_SPIN_TURN 360
+#define SPEEDMAX_SPIN_TURN 300
 
 class Mouse {
     public:
         Mouse();
         // make this public for tests
         void wait_to_start();
+        void wait_to_start_front();
         void error_ping();
         void move(float distance, float max_speed, bool check_wall = true);
         void move_from_wall();
@@ -33,7 +34,7 @@ class Mouse {
         void turn_around();
         void move_backward();
         void update_walls();
-        void run();
+        void run_smooth(); // front sensor should be calibrated properly
     private:
         void move_angle(float angle);
         void init_leds();

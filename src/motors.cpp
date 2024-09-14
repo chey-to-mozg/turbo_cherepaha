@@ -14,8 +14,10 @@ float s_pwm_right;
 bool l_motors_enabled;
 
 void init_motors() {
-    pinMode(LEFT_DIR, OUTPUT);
-    pinMode(RIGHT_DIR, OUTPUT);
+    pinMode(LEFT_DIR_1, OUTPUT);
+    pinMode(LEFT_DIR_2, OUTPUT);
+    pinMode(RIGHT_DIR_1, OUTPUT);
+    pinMode(RIGHT_DIR_2, OUTPUT);
     pinMode(LEFT_PWM, OUTPUT);
     pinMode(RIGHT_PWM, OUTPUT);
 
@@ -44,7 +46,8 @@ void set_direction_left(int forward) {
         g_left_dir = forward;
     }
     int polarity_bit = (forward + 1) >> 1;
-    digitalWrite(LEFT_DIR, polarity_bit ^ ENCODER_LEFT_POLARITY);
+    digitalWrite(LEFT_DIR_1, polarity_bit);
+    digitalWrite(LEFT_DIR_2, polarity_bit ^ ENCODER_LEFT_POLARITY);
 }
 
 void set_direction_right(int forward) {
@@ -52,7 +55,8 @@ void set_direction_right(int forward) {
         g_right_dir = forward;
     }
     int polarity_bit = (forward + 1) >> 1;
-    digitalWrite(RIGHT_DIR, polarity_bit ^ ENCODER_RIGHT_POLARITY);
+    digitalWrite(RIGHT_DIR_1, polarity_bit ^ ENCODER_RIGHT_POLARITY);
+    digitalWrite(RIGHT_DIR_2, polarity_bit);
 }
 
 void set_left_motor_pwm(int pwm) {

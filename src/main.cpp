@@ -15,43 +15,23 @@ void setup() {
   init_systick();
   forward.reset();
   rotation.reset();
-  mouse.wait_to_start();
-  calibrate_gyro();
+  mouse.wait_to_start_front();
+  // calibrate_gyro();
   mouse.update_walls();
 }
 
 
 void loop() {
-  reset_encoders();
-  reset_motor_controllers();
-  enable_mototrs();
-  enable_steering();
-  mouse.move(1000, 300);
-  while (!button_pressed())
-  {
-    print_gyro();
-    print_debug();
-    delay(100);
+  if (DEBUG_LOGGING) {
+    // maze.load_maze();
+    maze.print_maze();
   }
-  
-  // mouse.move_from_wall();
-  // // mouse.turn_90_left_smooth();
-  // mouse.turn_90_right_smooth();
-  // // mouse.turn_90_left_smooth();
-  // // mouse.turn_90_left_smooth();
-  // // mouse.move_cell();
-  // forward.stop();
-  // disable_mototrs();
-  // stop_motors();
-  // mouse.wait_to_start();
-  
-  // print_sensors();
-  // maze.print_maze();
-  // mouse.run();
-  // // while (true)
-  // // {
-  // //   delay(1000);
-  // // }
+  mouse.run();
+
+  maze.save_maze();
+  mouse.error_ping();
+
+
   
     // mouse.wait_to_start();
     // bool signal = true;

@@ -3,19 +3,19 @@
 
 
 void init_systick() {
-    bitClear(TCCR3A, WGM30);
-    bitClear(TCCR3A, WGM31);
-    bitSet(TCCR3B, WGM32);
-    // set divisor to 1024 => 125kHz
-    bitSet(TCCR3B, CS32);
-    bitClear(TCCR3B, CS31);
-    bitSet(TCCR3B, CS30);
-    OCR3A = 31; // (16000000/1024/500)-1 = 31,  500Hz
-    bitSet(TIMSK3, OCIE3A);
+    bitClear(TCCR2A, WGM20);
+    bitClear(TCCR2A, WGM21);
+    bitSet(TCCR2B, WGM22);
+    // set divisor to 128 => 125kHz
+    bitSet(TCCR2B, CS22);
+    bitClear(TCCR2B, CS21);
+    bitSet(TCCR2B, CS20);
+    OCR2A = 249; // (16000000/128/500)-1 => 500Hz
+    bitSet(TIMSK2, OCIE2A);
 }
 
 
-ISR(TIMER3_COMPA_vect, ISR_NOBLOCK) {
+ISR(TIMER2_COMPA_vect, ISR_NOBLOCK) {
     update_encoders();
     read_sensors();
     forward.update();
