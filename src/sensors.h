@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <config.h>
+#include "leds.h"
 #include <util/atomic.h>
 
 

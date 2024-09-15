@@ -8,6 +8,7 @@
 #include "reporter.h"
 #include "profile.h"
 #include "maze.h"
+#include "leds.h"
 
 #define SEARCH_ACCELERATION 700
 #define SPIN_TURN_ACCELERATION 1000
@@ -37,7 +38,6 @@ class Mouse {
         void run_smooth(); // front sensor should be calibrated properly
     private:
         void move_angle(float angle);
-        void init_leds();
 
         bool is_start = true;
 

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "reporter.h"
 #include "motors.h"
+#include "leds.h"
 #include "mouse.h"
 #include "maze.h"
 #include "systick.h"
@@ -12,24 +13,52 @@ void setup() {
   init_sesnors();
   init_encoders();
   init_motors();
+  init_leds();
   init_systick();
   forward.reset();
   rotation.reset();
-  mouse.wait_to_start_front();
+  mouse.wait_to_start();
   // calibrate_gyro();
   mouse.update_walls();
 }
 
 
 void loop() {
-  if (DEBUG_LOGGING) {
-    // maze.load_maze();
-    maze.print_maze();
-  }
-  mouse.run();
+  digitalWrite(RIGHT_DIR, 0);
+  analogWrite(RIGHT_PWM, 100);
+  delay(1000);
+  digitalWrite(RIGHT_DIR, 1);
+  analogWrite(RIGHT_PWM, 100);
+  delay(1000);
+  // set_left_motor_pwm(50);
+  // delay(1000);
+  // set_left_motor_pwm(-50);
+  // delay(1000);
+  // set_left_motor_pwm(0);
+  // set_right_motor_pwm(50);
+  // delay(1000);
+  // set_right_motor_pwm(-50);
+  // delay(1000);
+  // set_right_motor_pwm(0);
+  // enable_mototrs();
+  // reset_encoders();
+  // reset_motor_controllers();
 
-  maze.save_maze();
-  mouse.error_ping();
+  // mouse.move_from_wall();
+
+  // forward.stop();
+  // disable_mototrs();
+  // set_left_motor_pwm(0);
+  // set_right_motor_pwm(0);
+  // mouse.wait_to_start();
+  // if (DEBUG_LOGGING) {
+  //   // maze.load_maze();
+  //   maze.print_maze();
+  // }
+  // mouse.run();
+
+  // maze.save_maze();
+  // mouse.error_ping();
 
 
   

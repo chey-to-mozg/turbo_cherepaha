@@ -48,9 +48,9 @@ class Queue {
   }
 
   void error_ping() {
-    digitalWrite(LED_GREEN, 1);
-    digitalWrite(LED_BLUE, 1);
-    digitalWrite(LED_RED, 1);
+    // digitalWrite(LED_GREEN, 1);
+    // digitalWrite(LED_BLUE, 1);
+    // digitalWrite(LED_RED, 1);
   }
 
   void clear() {

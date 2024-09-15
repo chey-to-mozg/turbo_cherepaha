@@ -56,11 +56,13 @@ void print_sensors() {
     #if DEBUG_LOGGING == 1
         int left_raw;
         int front_raw_left;
-        int front_raw_right;
+        // int front_raw_right;
         int right_raw;
         int left;
         int front;
         int right;
+        bool but_left;
+        bool but_right;
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
             left = g_left_sensor;
             front = g_front_sensor;
@@ -69,6 +71,8 @@ void print_sensors() {
             front_raw_left = g_front_sensor_raw_left;
             // front_raw_right = g_front_sensor_raw_right;
             right_raw = g_right_sensor_raw;
+            but_left = g_left_button;
+            but_right = g_right_button;
         }
 
         Serial.print("<");
@@ -93,7 +97,12 @@ void print_sensors() {
         Serial.print(" ");
         Serial.print(front);
 
-        Serial.print(" |");
+        Serial.print(" [ ");
+        Serial.print(but_left);
+        Serial.print(" | ");
+        Serial.print(but_right);
+
+        Serial.print(" ] |");
         Serial.print(" ");
         Serial.print(g_cross_track_error);
         Serial.print(" ");

@@ -3,14 +3,7 @@
 Mouse mouse;
 
 Mouse::Mouse() {
-    init_leds();
     disable_steering();
-}
-
-void Mouse::init_leds() {
-    pinMode(LED_RED, OUTPUT);
-    pinMode(LED_GREEN, OUTPUT);
-    pinMode(LED_BLUE, OUTPUT);
 }
 
 void Mouse::move(float distance, float max_speed, bool check_wall) {
@@ -44,33 +37,40 @@ void Mouse::move_angle(float angle) {
 }
 
 void Mouse::wait_to_start() {
-    bool signal = true;
+    init_loading_leds();
     while(!button_pressed()) {
-        digitalWrite(LED_GREEN, signal);
-        signal = !signal;
-        delay(300);
+        step_loading_leds();
+        if (DEBUG_LOGGING) {
+            print_sensors();
+            print_profile();
+        }
+        delay(100);
     }
-    digitalWrite(LED_GREEN, true);
+    turn_all_leds();
     delay(2000);
+    reset_leds();
 }
 
 void Mouse::wait_to_start_front() {
     bool signal = true;
     while(g_front_sensor < 200) {
-        digitalWrite(LED_GREEN, signal);
+        // digitalWrite(LED_GREEN, signal);
         signal = !signal;
         delay(300);
     }
-    digitalWrite(LED_GREEN, true);
+    // digitalWrite(LED_GREEN, true);
     delay(2000);
 }
 
 void Mouse::error_ping() {
     bool signal = false;
     while (true) {
-        digitalWrite(LED_GREEN, signal);
-        digitalWrite(LED_BLUE, signal);
-        digitalWrite(LED_RED, signal);
+        if (signal) {
+            turn_all_leds();
+        }
+        else {
+            reset_leds();
+        }
         delay(500);
         signal = !signal;
     } 
@@ -129,7 +129,7 @@ void Mouse::turn_90_left_smooth() {
         delay(2); // wait for 1 update loop
         if (g_front_sensor > PRE_TURN_REFERENCE) {
             forward.set_state(CS_FINISHED);
-            digitalWrite(LED_GREEN, true);
+            // digitalWrite(LED_GREEN, true);
         }
     }
 
@@ -155,7 +155,7 @@ void Mouse::turn_90_right_smooth() {
     forward.start(distance, forward.speed(), SPEEDMAX_PRETURN, SEARCH_ACCELERATION);
 
     if (g_is_front_wall) {
-        digitalWrite(LED_GREEN, true);
+        // digitalWrite(LED_GREEN, true);
         while (g_front_sensor < PRE_TURN_REFERENCE) {
             delay(2);
         }

@@ -10,15 +10,15 @@ const bool SERIAL_ENABLE = true;
 //**** CONSTANTS ****//
 
 //** SERIAL PRINT **//
-#define DEBUG_LOGGING 0
+#define DEBUG_LOGGING 1
 
 //** DRIVER **//
 
 const float ENCODER_PULSES = 3.0; // 3 up pulses per one cycle (total 12 pulses for 2 channels for up and down events)
 const float GEAR_RATIO = 100.0; // numbers from documentation. In real life need to correct it somehow
-const float WHEEL_DIAMETER = 45.0; // numbers from documentation.
+const float WHEEL_DIAMETER = 33.5; // numbers from documentation.
 
-const float MOUSE_RADIUS = 39.98; // left turn R = 40.455; // reduce in case of pere-turn, increase in case of nedo-turn
+const float MOUSE_RADIUS = 40.0; // left turn R = 40.455; // reduce in case of pere-turn, increase in case of nedo-turn
 
 const float SPEED_FF = (1.0 / 6.0); // tune to make average speed 
 const float ROTATION_BIAS = 0.0018; // to make robot go forward
@@ -55,9 +55,9 @@ enum Direction: uint8_t {
 
 //** SENSORS **/
 const int LEFT_CALIBRATION = 225; // test when robot centered and no front wall
-const int RIGHT_CALIBRATION = 225; // test when robot centered and no front wall
-const int FRONT_CALIBRATION_LEFT = 220; // test when robot with back walls
-const int FRONT_CALIBRATION_RIGHT = 195; // test when robot with back walls
+const int RIGHT_CALIBRATION = 200; // test when robot centered and no front wall
+const int FRONT_CALIBRATION_LEFT = 300; // test when robot with back walls
+// const int FRONT_CALIBRATION_RIGHT = 195; // test when robot with back walls
 
 const int NOMINAL_VALUE = 100; // sensors should give 100 in normal position
 
@@ -68,12 +68,12 @@ const float FRONT_SCALE = (float)NOMINAL_VALUE / FRONT_CALIBRATION_LEFT;
 const int READS_PER_SENSOR = 1;
 
 // values to detect walls
-const int LEFT_THRESHOLD = 70;
+const int LEFT_THRESHOLD = 60;
 const int RIGHT_THRESHOLD = 70;
-const int FRONT_THRESHOLD = 50;
+const int FRONT_THRESHOLD = 70;
 
 // value to decide if we in cell center
-const int FRONT_REFERENCE = 190;
+const int FRONT_REFERENCE = 125;
 const int PRE_TURN_REFERENCE = 75;
 
 // button treshold
@@ -84,7 +84,7 @@ const int RIGHT_BUTTON_THRESHOLD = 100;
 const float STEERING_ADJUST_LIMIT = 10.0; // deg/s
 
 //**** DISTANCE RELATED ****//
-const int ROBOT_OFFSET = 45;
+const int ROBOT_OFFSET = 50;
 const int BACK_WALL_TO_CENTER = HALF_CELL - ROBOT_OFFSET;
 const int SENSING_OFFSET = 10;
 
@@ -96,27 +96,25 @@ const float LOOP_INTERVAL = (1.0 / LOOP_FREQUENCY);
 
 // ** SENSORS ** //
 const uint8_t LEFT_WALL_SENSOR          = A0;
-const uint8_t RIGHT_WALL_SENSOR         = A2;
-const uint8_t FRONT_LEFT_WALL_SENSOR    = A1;
+const uint8_t RIGHT_WALL_SENSOR         = A1;
+const uint8_t FRONT_LEFT_WALL_SENSOR    = A2;
 // const uint8_t FRONT_RIGHT_WALL_SENSOR   = A3;
 
-// const uint8_t BUTTON = 10;
+const uint8_t BUTTON = 10;
 
 // ** MOTORS ** //
-const uint8_t ENCOUNTER_RIGHT = 2;
-const uint8_t ENCOUNTER_LEFT = 3;
+const uint8_t ENCOUNTER_RIGHT = 0;
+const uint8_t ENCOUNTER_LEFT = 1;
 
-const uint8_t LEFT_DIR_1 = 5;
-const uint8_t LEFT_DIR_2 = 8;
-const uint8_t RIGHT_DIR_1 = 6;
-const uint8_t RIGHT_DIR_2 = 7;
-const uint8_t LEFT_PWM = 10;
-const uint8_t RIGHT_PWM = 9;
+const uint8_t LEFT_DIR = 8;
+const uint8_t RIGHT_DIR = 4;
+const uint8_t LEFT_PWM = 9;
+const uint8_t RIGHT_PWM = 6;
 
 // ** LEDS **//
-const uint8_t LED_RED = 13;
-const uint8_t LED_GREEN = A5;
-const uint8_t LED_BLUE = A4;
+const uint8_t DATA_PIN = 5;
+const uint8_t LATCH_PIN = 7;
+const uint8_t CLOCK_PIN = 16;
 
 // ** BLUETOOTH ** //
 const uint8_t BT_RX = 15;

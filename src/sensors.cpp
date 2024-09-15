@@ -85,19 +85,17 @@ void read_sensors() {
     g_is_right_wall = g_right_sensor > RIGHT_THRESHOLD;
     g_is_front_wall = g_front_sensor > FRONT_THRESHOLD;
 
-    // int button = analogRead(BUTTON);
-    // g_left_button = false;
-    // g_right_button = false;
-    // if (button < RIGHT_BUTTON_THRESHOLD) {
-    //     g_right_button = true;
-    // }
-    // else if (button < LEFT_BUTTON_THRESHOLD) {
-    //     g_left_button = true;
-    // }
+    int button = analogRead(BUTTON);
+    g_left_button = false;
+    g_right_button = false;
+    if (button < RIGHT_BUTTON_THRESHOLD) {
+        g_right_button = true;
+    }
+    else if (button < LEFT_BUTTON_THRESHOLD) {
+        g_left_button = true;
+    }
     if (g_steering_enabled) {
-        digitalWrite(LED_BLUE, g_is_left_wall);
-        digitalWrite(LED_GREEN, g_is_front_wall);
-        digitalWrite(LED_RED, g_is_right_wall);
+        turn_wall_leds(g_is_left_wall, g_is_front_wall, g_is_right_wall);
     }
     
 }
@@ -148,14 +146,12 @@ void enable_steering() {
 
 void disable_steering() {
     g_steering_enabled = false;
-    digitalWrite(LED_BLUE, false);
-    digitalWrite(LED_GREEN, false);
-    digitalWrite(LED_RED, false);
+    reset_leds();
 }
 
-// bool button_pressed() {
-//     return analogRead(BUTTON) < 500;
-// }
+bool button_pressed() {
+    return g_left_button || g_right_button;
+}
 
 void calibrate_gyro() {
     int num_reads = 100;
