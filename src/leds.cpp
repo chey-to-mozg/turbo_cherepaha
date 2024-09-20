@@ -28,7 +28,7 @@ void turn_leds(uint8_t controls) {
 }
 
 void turn_all_leds() {
-     turn_leds(0b00111111);
+    turn_leds(0b00111111);
 }
 
 void reset_leds() {

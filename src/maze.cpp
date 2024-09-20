@@ -82,6 +82,18 @@ Pair Maze::get_finish() {
     return target;
 }
 
+Pair Maze::get_start() {
+    return start_position;
+}
+
+void Maze::set_position(Pair position) {
+    mouse_position = position;
+}
+
+void Maze::set_direction(uint8_t dir) {
+    mouse_direction = dir;
+}
+
 bool Maze::check_wall(Pair position, uint8_t wall) {
     return (walls[position.y][position.x] & wall) == wall;
 }
@@ -138,7 +150,8 @@ void Maze::find_path(Pair start) {
                 }
                 else if ((direction + 2) % 4 == i) {
                     path[path_len++] = 'A';
-                    direction = (direction + 1) % 4;
+                    path[path_len++] = 'F';
+                    direction = (direction + 2) % 4;
                 }
                 else if ((direction + 3) % 4 == i) {
                     path[path_len++] = 'L';

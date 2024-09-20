@@ -184,7 +184,7 @@ void init_sesnors() {
     pinMode(FRONT_LEFT_WALL_SENSOR, INPUT);
     // pinMode(FRONT_RIGHT_WALL_SENSOR, INPUT);
 
-    // pinMode(BUTTON, INPUT_PULLUP);
+    pinMode(BUTTON, INPUT_PULLUP);
 
     // Wire.begin();
     // Wire.beginTransmission(MPU_addr);

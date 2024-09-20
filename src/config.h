@@ -16,7 +16,7 @@ const bool SERIAL_ENABLE = true;
 
 const float ENCODER_PULSES = 3.0; // 3 up pulses per one cycle (total 12 pulses for 2 channels for up and down events)
 const float GEAR_RATIO = 100.0; // numbers from documentation. In real life need to correct it somehow
-const float WHEEL_DIAMETER = 33.5; // numbers from documentation.
+const float WHEEL_DIAMETER = 35; // numbers from documentation.
 
 const float MOUSE_RADIUS = 40.0; // left turn R = 40.455; // reduce in case of pere-turn, increase in case of nedo-turn
 
@@ -69,12 +69,12 @@ const int READS_PER_SENSOR = 1;
 
 // values to detect walls
 const int LEFT_THRESHOLD = 60;
-const int RIGHT_THRESHOLD = 70;
+const int RIGHT_THRESHOLD = 60;
 const int FRONT_THRESHOLD = 70;
 
 // value to decide if we in cell center
-const int FRONT_REFERENCE = 125;
-const int PRE_TURN_REFERENCE = 75;
+const int FRONT_REFERENCE = 135;
+const int PRE_TURN_REFERENCE = 85;
 
 // button treshold
 const int LEFT_BUTTON_THRESHOLD = 200;
@@ -86,7 +86,7 @@ const float STEERING_ADJUST_LIMIT = 10.0; // deg/s
 //**** DISTANCE RELATED ****//
 const int ROBOT_OFFSET = 50;
 const int BACK_WALL_TO_CENTER = HALF_CELL - ROBOT_OFFSET;
-const int SENSING_OFFSET = 10;
+const int SENSING_OFFSET = 0;
 
 //**** Control loop timing. Pre-calculate to save time in interrupts ****..
 const float LOOP_FREQUENCY = 500.0;
