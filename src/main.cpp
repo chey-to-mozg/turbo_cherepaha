@@ -17,46 +17,79 @@ void setup() {
   init_systick();
   forward.reset();
   rotation.reset();
-  delay(3000); // wait for sensor data dump
+  // delay(3000); // wait for sensor data dump
   mouse.wait_to_start();
   // calibrate_gyro();
   mouse.update_walls();
-  enable_steering();
 }
 
 
 void loop() {
-  // enable_steering();
-  // reset_encoders();
-  // reset_motor_controllers();
-  // enable_mototrs();
+  enable_steering();
+  reset_encoders();
+  reset_motor_controllers();
+  enable_mototrs();
 
-  // mouse.move_from_wall();
+  mouse.move_from_wall();
+  mouse.turn_90_right_smooth();
+  mouse.turn_90_right_smooth();
+
+  // mouse.move_to_center();
+
   // forward.adjust_position(-CELL);
-  // mouse.wait_until_position(CELL - SENSING_OFFSET);
-  // // mouse.turn_90_right_smooth();
+  // mouse.wait_until_position(CELL);
 
-  // forward.stop();
-  // // disable_steering();
-  // disable_mototrs();
-  // set_left_motor_pwm(0);
-  // set_right_motor_pwm(0);
+  // // forward.adjust_position(-CELL);
+  // // mouse.wait_until_position(CELL);
+
+  // mouse.turn_90_right();
+
+  // // mouse.move_cell();
+
+
+  // // mouse.move_from_wall();
+  // // forward.adjust_position(-CELL);
+  // // mouse.wait_until_position(CELL - SENSING_OFFSET);
+  // // // mouse.turn_90_right_smooth();
+  int l = g_left_sensor;
+  int f = g_front_sensor;
+  int r = g_right_sensor;
+  mouse.stop();
+  Serial.println(l);
+  Serial.println(f);
+  Serial.println(r);
+  delay(2000);
+
+  // // TODO make normal run for search
+
+  // // if (DEBUG_LOGGING) {
+  // //   // maze.load_maze();
+  // //   maze.print_maze();
+  // // }
+  // // mouse.run_smooth();
+  
+  
+  // bool finished = mouse.run_smooth();
+  // // bool finished = mouse.run_normal();
+
+  // if (finished) {
+  //   mouse.finish_ping();
+  // } 
+  // else {
+  //   mouse.error_ping();
+  // }
+  
+  // finished = mouse.run_smooth(false);
+
+  // if (!finished) {
+  //   mouse.error_ping();
+  // }
+
   // mouse.wait_to_start();
 
-  // TODO make normal run for search
+  // finished = mouse.run_smooth(true, false);
 
-  // if (DEBUG_LOGGING) {
-  //   // maze.load_maze();
-  //   maze.print_maze();
-  // }
-  // mouse.run_smooth();
-  mouse.run_normal();
-
-  mouse.finish_ping();
-
-  mouse.run_normal(false);
-
-  mouse.wait_to_start();
+  // mouse.wait_to_start();
 
 
   // // // maze.save_maze();

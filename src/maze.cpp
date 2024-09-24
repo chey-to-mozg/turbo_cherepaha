@@ -125,7 +125,7 @@ void Maze::floodfill(Pair target) {
     }
 }
 
-void Maze::find_path(Pair start) {
+bool Maze::find_path(Pair start) {
     current_path_idx = 0;
     path_len = 0;
     uint8_t cur_val = maze[start.y][start.x];
@@ -146,6 +146,7 @@ void Maze::find_path(Pair start) {
                 }
                 else if ((direction + 1) % 4 == i) {
                     path[path_len++] = 'R';
+                    path[path_len++] = 'F';
                     direction = (direction + 1) % 4;
                 }
                 else if ((direction + 2) % 4 == i) {
@@ -155,17 +156,21 @@ void Maze::find_path(Pair start) {
                 }
                 else if ((direction + 3) % 4 == i) {
                     path[path_len++] = 'L';
+                    path[path_len++] = 'F';
                     direction = (direction + 3) % 4;
                 }
                 break;
             }
         }
     }
+    return path_len != 0;
 }
 
-char Maze::get_next_move() {
+char Maze::get_next_move(bool update_counter) {
     char next_move = path[current_path_idx];
-    current_path_idx++;
+    if (update_counter) {
+        current_path_idx++;
+    }
     return next_move;
 }
 
@@ -174,7 +179,7 @@ uint8_t Maze::get_path_len() {
 }
 
 void Maze::save_maze() {
-    if (DEBUG_LOGGING) {
+    if (DEBUG_AVAILABLE) {
        Serial.println("Saving maze...");
     }
     int address = 0;
@@ -186,13 +191,13 @@ void Maze::save_maze() {
             address += sizeof(uint8_t);
         }
     }
-    if (DEBUG_LOGGING) {
+    if (DEBUG_AVAILABLE) {
        Serial.println("Saved...");
     }
 }
 
 void Maze::load_maze() {
-    if (DEBUG_LOGGING) {
+    if (DEBUG_AVAILABLE) {
         Serial.println("loading maze...");
     }
     int address = 0;
@@ -204,13 +209,13 @@ void Maze::load_maze() {
             address += sizeof(uint8_t);
         }
     }
-    if (DEBUG_LOGGING) {
+    if (DEBUG_AVAILABLE) {
         Serial.println("Loaded...");
     }
 }
 
 void Maze::print_path() {
-    if (!DEBUG_LOGGING) {
+    if (!DEBUG_AVAILABLE) {
         return;
     }
     for (int i = current_path_idx; i < path_len; i++) {
@@ -220,7 +225,7 @@ void Maze::print_path() {
 }
 
 void Maze::print_maze() {
-    if (!DEBUG_LOGGING) {
+    if (!DEBUG_AVAILABLE) {
         return;
     }
     

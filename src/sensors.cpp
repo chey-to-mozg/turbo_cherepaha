@@ -19,8 +19,8 @@ volatile bool g_right_button;
 static float last_steering_error = 0;
 
 bool g_steering_enabled;
-volatile float g_cross_track_error;
-volatile float g_steering_adjustment;
+volatile float g_cross_track_error = 0;
+volatile float g_steering_adjustment = 0;
 
 const int MPU_addr=0x68;
 
@@ -186,11 +186,11 @@ void init_sesnors() {
 
     pinMode(BUTTON, INPUT_PULLUP);
 
-    // Wire.begin();
-    // Wire.beginTransmission(MPU_addr);
-    // Wire.write(0x6B);
-    // Wire.write(0);
-    // Wire.endTransmission(true);
+    Wire.begin();
+    Wire.beginTransmission(MPU_addr);
+    Wire.write(0x6B);
+    Wire.write(0);
+    Wire.endTransmission(true);
 
     g_steering_enabled = false;
 }

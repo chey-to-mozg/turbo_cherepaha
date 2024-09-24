@@ -99,6 +99,9 @@ float Profile::acceleration() {
 void Profile::set_target_speed(float speed) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         m_target_speed = speed;
+        if (m_final_speed > speed) {
+            m_final_speed = speed;
+        }
     }
 }
 

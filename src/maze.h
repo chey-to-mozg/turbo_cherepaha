@@ -41,8 +41,8 @@ class Maze {
     public:
         Maze();
         void floodfill(Pair target);
-        void find_path(Pair start);
-        char get_next_move();
+        bool find_path(Pair start);
+        char get_next_move(bool update_counter = true);
         uint8_t get_path_len();
         void set_walls(bool is_left_wall, bool is_front_wall, bool is_right_wall);
         void set_visited();

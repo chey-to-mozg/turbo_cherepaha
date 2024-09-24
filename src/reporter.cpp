@@ -53,7 +53,7 @@ void print_gyro() {
 
 
 void print_sensors() {
-    #if DEBUG_LOGGING == 1
+    if (DEBUG_AVAILABLE) {
         int left_raw;
         int front_raw_left;
         // int front_raw_right;
@@ -107,13 +107,13 @@ void print_sensors() {
         Serial.print(g_cross_track_error);
         Serial.print(" ");
         Serial.println(g_steering_adjustment);  
-    #else
+    }
+    else
       delay(2);
-    #endif
 }
 
 void print_motors() {
-    #if DEBUG_LOGGING == 1
+    if (DEBUG_AVAILABLE) {
         Serial.print(" < dist ");
         Serial.print(s_distance_left);
         Serial.print(" enc ");
@@ -133,13 +133,13 @@ void print_motors() {
         Serial.print(s_err_fwd);
         Serial.print(" | rot err ");
         Serial.println(s_err_rot);
-    #else
+    }
+    else
       delay(2);
-    #endif
 }
 
 void print_debug() {
-    #if DEBUG_LOGGING == 1
+    if (DEBUG_AVAILABLE) {
         float debug1;
         float debug2;
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
@@ -149,13 +149,12 @@ void print_debug() {
         Serial.print(debug1);
         Serial.print(" ");
         Serial.println(debug2);
-    #else
+    }
       delay(2);
-    #endif
 }
 
 void print_profile() {
-    #if DEBUG_LOGGING == 1
+    if (DEBUG_AVAILABLE) {
         Serial.print("Enc pos ");
         Serial.print(robot_position());
         Serial.print(" Enc ang ");
@@ -173,9 +172,9 @@ void print_profile() {
         Serial.print(" > pwm ");
         Serial.print(s_pwm_right);
         Serial.println();
-    #else
+    }
+    else
       delay(2);
-    #endif
 }
 
 void report_bluetooth() {

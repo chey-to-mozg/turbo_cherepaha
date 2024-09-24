@@ -10,7 +10,10 @@ const bool SERIAL_ENABLE = true;
 //**** CONSTANTS ****//
 
 //** SERIAL PRINT **//
-#define DEBUG_LOGGING 1
+#define DEBUG_LOGGING 0
+#define DEBUG_LOGGING_WITH_MOTOTRS 0
+
+const bool DEBUG_AVAILABLE = DEBUG_LOGGING || DEBUG_LOGGING_WITH_MOTOTRS;
 
 //** DRIVER **//
 
@@ -30,15 +33,15 @@ const int MAX_PWM = 250;
 const int MIN_PWM = -250;
 
 //** PD  **/
-const float KP_FWD = 2.5;
-const float KD_FWD = 1;
+const float KP_FWD = 2.2;
+const float KD_FWD = 1.0;
 
 const float KP_ROT = 2.2;
 const float KD_ROT = 1.1;
 
 // controller constants for the steering controller
-const float KP_STEER = 0.25;
-const float KD_STEER = 0;
+const float KP_STEER = 0.0;
+const float KD_STEER = 0.0;
 
 //** MAZE **/
 
@@ -54,9 +57,9 @@ enum Direction: uint8_t {
 };
 
 //** SENSORS **/
-const int LEFT_CALIBRATION = 225; // test when robot centered and no front wall
-const int RIGHT_CALIBRATION = 200; // test when robot centered and no front wall
-const int FRONT_CALIBRATION_LEFT = 300; // test when robot with back walls
+const int LEFT_CALIBRATION = 220; // test when robot centered and no front wall
+const int RIGHT_CALIBRATION = 220; // test when robot centered and no front wall
+const int FRONT_CALIBRATION_LEFT = 310; // test when robot with back walls
 // const int FRONT_CALIBRATION_RIGHT = 195; // test when robot with back walls
 
 const int NOMINAL_VALUE = 100; // sensors should give 100 in normal position
@@ -68,12 +71,12 @@ const float FRONT_SCALE = (float)NOMINAL_VALUE / FRONT_CALIBRATION_LEFT;
 const int READS_PER_SENSOR = 1;
 
 // values to detect walls
-const int LEFT_THRESHOLD = 60;
-const int RIGHT_THRESHOLD = 60;
-const int FRONT_THRESHOLD = 70;
+const int LEFT_THRESHOLD = 65;
+const int RIGHT_THRESHOLD = 65;
+const int FRONT_THRESHOLD = 60;
 
 // value to decide if we in cell center
-const int FRONT_REFERENCE = 135;
+const int FRONT_REFERENCE = 125;
 const int PRE_TURN_REFERENCE = 85;
 
 // button treshold
@@ -86,7 +89,7 @@ const float STEERING_ADJUST_LIMIT = 10.0; // deg/s
 //**** DISTANCE RELATED ****//
 const int ROBOT_OFFSET = 50;
 const int BACK_WALL_TO_CENTER = HALF_CELL - ROBOT_OFFSET;
-const int SENSING_OFFSET = 0;
+const int SENSING_OFFSET = 20;
 
 //**** Control loop timing. Pre-calculate to save time in interrupts ****..
 const float LOOP_FREQUENCY = 500.0;

@@ -10,9 +10,9 @@
     */
 
 uint8_t step = 0;
-const uint8_t front_wall_leds = 0b00001001;
-const uint8_t left_wall_leds = 0b00010000;
-const uint8_t right_wall_leds = 0b00000010;
+const uint8_t front_wall_leds = RED_LEFT_LED | RED_RIGHT_LED;
+const uint8_t left_wall_leds = BLUE_LEFT_LED;
+const uint8_t right_wall_leds = BLUE_RIGHT_LED;
 
 
 void init_leds() {
@@ -76,5 +76,19 @@ void turn_wall_leds(bool left_wall, bool front_wall, bool right_wall) {
     if (right_wall)
         leds |= right_wall_leds;
     
+    turn_leds(leds);
+}
+
+void turn_mode_leds(uint8_t mode, bool signal_led) {
+    uint8_t mode_leds[3] = {BLUE_RIGHT_LED, GREEN_RIGHT_LED, RED_RIGHT_LED};
+    uint8_t leds = 0;
+    for (int i = 0; i < 3; i++) {
+        if (mode >> i & 1) {
+            leds |= mode_leds[i];
+        }
+    }
+    if (signal_led) {
+        leds |= BLUE_LEFT_LED;
+    }
     turn_leds(leds);
 }
