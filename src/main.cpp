@@ -17,7 +17,7 @@ void setup() {
   init_systick();
   forward.reset();
   rotation.reset();
-  // delay(3000); // wait for sensor data dump
+  delay(3000); // wait for sensor data dump
   mouse.wait_to_start();
   // calibrate_gyro();
   mouse.update_walls();
@@ -25,14 +25,16 @@ void setup() {
 
 
 void loop() {
-  enable_steering();
-  reset_encoders();
-  reset_motor_controllers();
-  enable_mototrs();
+  // enable_steering();
+  // reset_encoders();
+  // reset_motor_controllers();
+  // enable_mototrs();
 
-  mouse.move_from_wall();
-  mouse.turn_90_right_smooth();
-  mouse.turn_90_right_smooth();
+  // mouse.move_from_wall();
+  // forward.adjust_position(-CELL);
+  // mouse.wait_until_position(CELL - SENSING_OFFSET);
+  // mouse.turn_90_right_smooth();
+  // mouse.turn_90_right_smooth();
 
   // mouse.move_to_center();
 
@@ -51,14 +53,14 @@ void loop() {
   // // forward.adjust_position(-CELL);
   // // mouse.wait_until_position(CELL - SENSING_OFFSET);
   // // // mouse.turn_90_right_smooth();
-  int l = g_left_sensor;
-  int f = g_front_sensor;
-  int r = g_right_sensor;
-  mouse.stop();
-  Serial.println(l);
-  Serial.println(f);
-  Serial.println(r);
-  delay(2000);
+  // int l = g_left_sensor;
+  // int f = g_front_sensor;
+  // int r = g_right_sensor;
+  // mouse.stop();
+  // Serial.println(l);
+  // Serial.println(f);
+  // Serial.println(r);
+  // delay(2000);
 
   // // TODO make normal run for search
 
@@ -69,27 +71,27 @@ void loop() {
   // // mouse.run_smooth();
   
   
-  // bool finished = mouse.run_smooth();
-  // // bool finished = mouse.run_normal();
+  bool finished = mouse.run_smooth();
+  // bool finished = mouse.run_normal();
 
-  // if (finished) {
-  //   mouse.finish_ping();
-  // } 
-  // else {
-  //   mouse.error_ping();
-  // }
+  if (finished) {
+    mouse.finish_ping();
+  } 
+  else {
+    mouse.error_ping();
+  }
   
-  // finished = mouse.run_smooth(false);
+  finished = mouse.run_smooth(false);
 
-  // if (!finished) {
-  //   mouse.error_ping();
-  // }
+  if (!finished) {
+    mouse.error_ping();
+  }
 
-  // mouse.wait_to_start();
+  mouse.wait_to_start();
 
-  // finished = mouse.run_smooth(true, false);
+  finished = mouse.run_smooth(true, false);
 
-  // mouse.wait_to_start();
+  mouse.wait_to_start();
 
 
   // // // maze.save_maze();

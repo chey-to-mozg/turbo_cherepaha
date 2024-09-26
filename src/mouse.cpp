@@ -162,12 +162,12 @@ void Mouse::turn_90_right() {
 
 void Mouse::turn_90_left_smooth() {
     float angle = 90;
-    float offset = 20;
+    float offset = 25;
     float run_out = 20;
     disable_steering();
 
     // check when we reset position
-    float distance = CELL + SENSING_OFFSET + offset - forward.position();
+    float distance = CELL - forward.position() + offset;
     forward.start(distance, forward.speed(), SPEEDMAX_PRETURN, SEARCH_ACCELERATION);
 
     while (!forward.is_finished()) {
@@ -183,7 +183,7 @@ void Mouse::turn_90_left_smooth() {
         delay(2); // wait for 1 update loop
     }
 
-    forward.start(run_out, forward.speed(), SPEEDMAX_EXPLORE, SEARCH_ACCELERATION);
+    forward.start(run_out, SPEEDMAX_EXPLORE, SPEEDMAX_EXPLORE, SEARCH_ACCELERATION);
     while (not forward.is_finished()) {
         delay(2);
     }
@@ -196,7 +196,7 @@ void Mouse::turn_90_right_smooth() {
     float run_out = 15;
     disable_steering();
 
-    float distance = CELL + SENSING_OFFSET + offset - forward.position();
+    float distance = CELL - forward.position() + offset;
     forward.start(distance, forward.speed(), SPEEDMAX_PRETURN, SEARCH_ACCELERATION);
 
     while (!forward.is_finished()) {
@@ -212,7 +212,7 @@ void Mouse::turn_90_right_smooth() {
         delay(2); // wait for 1 update loop
     }
 
-    forward.start(run_out, forward.speed(), SPEEDMAX_EXPLORE, SEARCH_ACCELERATION);
+    forward.start(run_out, SPEEDMAX_EXPLORE, SPEEDMAX_EXPLORE, SEARCH_ACCELERATION);
     while (not forward.is_finished()) {
         delay(2);
     }
@@ -223,10 +223,10 @@ void Mouse::turn_around() {
     
     reset_steering();
     if (!is_center) {
-        forward.start(HALF_CELL + SENSING_OFFSET, forward.speed(), 30, forward.acceleration());
+        forward.start(HALF_CELL, forward.speed(), 30, forward.acceleration());
         while (!forward.is_finished()) {
             delay(2);
-            if (g_front_sensor < FRONT_REFERENCE) {
+            if (g_front_sensor > FRONT_REFERENCE) {
                 break;
             }
         }
@@ -243,6 +243,9 @@ void Mouse::turn_around() {
         is_start = true;
         is_center = false;
     }
+    forward.stop();
+    reset_encoders();
+    reset_motor_controllers();
 }
 
 void Mouse::update_walls() {
@@ -335,8 +338,6 @@ bool Mouse::run_smooth(bool to_finish, bool check_walls) {
                                 i++;
                                 maze.update_direction(RIGHT);
                                 maze.update_position();
-                                float f = g_front_sensor;
-                                float g_w = g_is_front_wall;
                             }
                             break;
                         case 'A':
@@ -396,13 +397,6 @@ bool Mouse::run_smooth(bool to_finish, bool check_walls) {
             }
         }
            
-    }
-
-    if (!to_finish) {
-        if (!DEBUG_LOGGING) {
-            turn_around();
-        }
-        maze.update_direction(DOWN);
     }
 
     forward.stop();
