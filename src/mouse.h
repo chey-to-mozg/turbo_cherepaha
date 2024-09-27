@@ -25,7 +25,8 @@ class Mouse {
         void wait_to_start_front();
         void error_ping();
         void finish_ping(int counts = 0);
-        void stop();
+        void print_info();
+        uint8_t stop();
         void move(float distance, float max_speed, bool check_wall = true);
         void move_from_wall();
         void move_to_center();
@@ -40,6 +41,7 @@ class Mouse {
         void update_walls();
         bool run_smooth(bool to_finish = true, bool check_walls = true); // front sensor should be calibrated properly
         bool run_normal(bool to_finish = true);
+        void reset_mouse();
     private:
         void move_angle(float angle);
 

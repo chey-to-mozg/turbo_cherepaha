@@ -7,12 +7,39 @@ Mouse::Mouse() {
     disable_steering();
 }
 
-void Mouse::stop() {
+uint8_t Mouse::stop() {
     forward.stop();
     disable_steering();
     disable_mototrs();
     stop_motors();
-    mouse.wait_to_start();
+    return mouse.wait_to_start();
+}
+
+void Mouse::reset_mouse() {
+    is_start = true;
+    is_center = false;
+    reset_encoders();
+    reset_motor_controllers();
+    forward.reset();
+    rotation.reset();
+    maze.set_direction(UP);
+    maze.set_position(maze.get_start());
+}
+
+void Mouse::print_info() {
+    maze.print_maze();
+    Serial.print("Current position: ");
+    Serial.print(maze.get_position().y);
+    Serial.print(" ");
+    Serial.println(maze.get_position().x);
+    Serial.print("Finish position: ");
+    Serial.print(maze.get_finish().y);
+    Serial.print(" ");
+    Serial.println(maze.get_finish().x);
+    Serial.print("On finish");
+    Serial.print(" ");
+    Serial.println(maze.get_finish() == maze.get_position());
+    maze.print_path();
 }
 
 void Mouse::move(float distance, float max_speed, bool check_wall) {
@@ -30,7 +57,7 @@ void Mouse::move(float distance, float max_speed, bool check_wall) {
 // move until reference
 void Mouse::wait_until_position(float position) {
   while (forward.position() < position) {
-    delay(2);
+    print_profile();
     if (g_front_sensor > FRONT_REFERENCE) {
         break;
     }
@@ -58,6 +85,8 @@ uint8_t Mouse::wait_to_start(bool print_debug) {
     3 -- smooth run from start to finish and back + save map
     4 -- normal run from start to finish with loaded map
     5 -- smooth run from start to finish with loaded map
+    6 -- ...
+    7 -- Print maze info
     */
     uint8_t mode = 0;
     bool signal = false;
@@ -69,7 +98,7 @@ uint8_t Mouse::wait_to_start(bool print_debug) {
             print_profile();
         }
         if (g_right_button) {
-            mode = (mode + 1) % 6;
+            mode = (mode + 1) % 8;
             turn_mode_leds(mode, signal);
             delay(500);
         }
@@ -80,12 +109,14 @@ uint8_t Mouse::wait_to_start(bool print_debug) {
     turn_all_leds();
     delay(2000);
     reset_leds();
+
+    return mode;
 }
 
 void Mouse::error_ping() {
     disable_steering();
     bool signal = false;
-    while (true) {
+    while (!button_pressed()) {
         if (signal) {
             turn_all_leds();
         }
@@ -94,8 +125,9 @@ void Mouse::error_ping() {
         }
         delay(500);
         signal = !signal;
-    } 
-    
+    }
+    turn_all_leds();
+    delay(1000);
 }
 
 void Mouse::finish_ping(int counts) {
@@ -246,6 +278,8 @@ void Mouse::turn_around() {
     forward.stop();
     reset_encoders();
     reset_motor_controllers();
+    forward.reset();
+    rotation.reset();
 }
 
 void Mouse::update_walls() {
@@ -258,6 +292,8 @@ void Mouse::update_walls() {
 }
 
 bool Mouse::run_smooth(bool to_finish, bool check_walls) {
+    // init wall before start
+    update_walls();
     Pair target;
     if (to_finish) {
         target = maze.get_finish();
@@ -278,38 +314,40 @@ bool Mouse::run_smooth(bool to_finish, bool check_walls) {
 
         while(path_exists && maze.get_position() != target) {
             for (int i = 0; i < maze.get_path_len(); i++) {
-
+                if (button_pressed()) {
+                    return false;
+                }
                 enable_steering();
                 update_walls();
-                maze.print_maze();
 
                 next_path = maze.get_next_move();
 
                 if (DEBUG_LOGGING) {
-                    Serial.print("Current position: ");
-                    Serial.print(maze.get_position().y);
-                    Serial.print(" ");
-                    Serial.println(maze.get_position().x);
-                    Serial.print("Finish position: ");
-                    Serial.print(maze.get_finish().y);
-                    Serial.print(" ");
-                    Serial.println(maze.get_finish().x);
-                    Serial.print("On finish");
-                    Serial.print(" ");
-                    Serial.println(maze.get_finish() == maze.get_position());
+                    print_info();
                     Serial.print("Next move: ");
                     Serial.println(next_path);
-                    maze.print_path();
                     wait_to_start(false);
                 }
 
+                if (DEBUG_LOGGING_WITH_MOTOTRS) {
+                    print_info();
+                    Serial.print("Next move: ");
+                    Serial.println(next_path);
+                }
+
                 if (is_start) {
-                    if (!DEBUG_LOGGING) {
-                        move_from_wall();
+                    if (next_path == 'F') {
+                        if (!DEBUG_LOGGING) {
+                            move_from_wall();
+                        }
+                        maze.update_position();
+                        is_start = false;
+                        is_center = false;
                     }
-                    maze.update_position();
-                    is_start = false;
-                    is_center = false;
+                    else {
+                        recalculate = true;
+                    }
+                    
                 }
                 else {
                     switch (next_path)

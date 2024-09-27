@@ -13,6 +13,11 @@ Pair NEIGHBOURS[4] = {
 char DIRECTION_TO_CHAR[4] = {'^', '>', 'v', '<'};
 
 Maze::Maze() {
+    reset_maze();
+    floodfill(target);
+}
+
+void Maze::reset_maze() {
     for (uint8_t y = 0; y < MAZE_WIDTH; y++) {
         for (uint8_t x = 0; x < MAZE_WIDTH; x++) {
             maze[y][x] = 0;
@@ -26,8 +31,6 @@ Maze::Maze() {
         walls[0][i] |= UP_WALL;
         walls[MAZE_WIDTH - 1][i] |= DOWN_WALL;
     }
-
-    floodfill(target);
 }
 
 bool Maze::is_visited() {

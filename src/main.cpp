@@ -7,6 +7,8 @@
 #include "systick.h"
 #include "profile.h"
 
+uint8_t mode = 0;
+
 void setup() {
   init_serial();
   // init_bluetooth();
@@ -18,13 +20,12 @@ void setup() {
   forward.reset();
   rotation.reset();
   delay(3000); // wait for sensor data dump
-  mouse.wait_to_start();
+  mode = mouse.wait_to_start();
   // calibrate_gyro();
   mouse.update_walls();
 }
 
-
-void loop() {
+void test_run() {
   // enable_steering();
   // reset_encoders();
   // reset_motor_controllers();
@@ -61,41 +62,59 @@ void loop() {
   // Serial.println(f);
   // Serial.println(r);
   // delay(2000);
+}
 
-  // // TODO make normal run for search
-
-  // // if (DEBUG_LOGGING) {
-  // //   // maze.load_maze();
-  // //   maze.print_maze();
-  // // }
-  // // mouse.run_smooth();
-  
-  
-  bool finished = mouse.run_smooth();
-  // bool finished = mouse.run_normal();
-
-  if (finished) {
-    mouse.finish_ping();
-  } 
-  else {
-    mouse.error_ping();
+void loop() {
+  Serial.println(mode);
+  if (mode == 0){
+    // TODO add normal run and back here
   }
-  
-  finished = mouse.run_smooth(false);
-
-  if (!finished) {
-    mouse.error_ping();
+  else if (mode == 1)
+  {
+    /* code */
   }
+  else if (mode == 2)
+  {
+    // smouth run and back
+    bool finished = mouse.run_smooth();
+    if (finished) {
+      mouse.finish_ping();
+      finished = mouse.run_smooth(false);
+    }
 
-  mouse.wait_to_start();
-
-  finished = mouse.run_smooth(true, false);
-
-  mouse.wait_to_start();
-
-
-  // // // maze.save_maze();
-  // mouse.error_ping();
-
+    if (!finished) {
+      mouse.error_ping();
+    }
     
+    mouse.reset_mouse();
+    maze.reset_maze();
+  }
+  else if (mode == 3)
+  {
+    
+  }
+  else if (mode == 4)
+  {
+    /* code */
+  }
+  else if (mode == 5)
+  {
+    /* code */
+  }
+  else if (mode == 6)
+  {
+    /* code */
+  }
+  else if (mode == 7)
+  {
+    // print maze related info
+      mouse.print_info();
+      while (!button_pressed())
+      {
+        delay(100);
+      }
+      
+  }
+
+  mode = mouse.stop();
 }

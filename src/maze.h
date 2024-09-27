@@ -40,6 +40,7 @@ extern char DIRECTION_TO_CHAR[4];
 class Maze {
     public:
         Maze();
+        void reset_maze();
         void floodfill(Pair target);
         bool find_path(Pair start);
         char get_next_move(bool update_counter = true);
