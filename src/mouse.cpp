@@ -73,7 +73,6 @@ void move_angle(float angle, float speed, float acceleration) {
     while (!rotation.is_finished()) {
         print_profile();
     }
-    enable_steering();
 }
 
 void turn(float angle, float speed, float acceleration) {
@@ -161,13 +160,13 @@ void Mouse::move_from_wall() {
 }
 
 void Mouse::move_to_center() {
-    forward.start(HALF_CELL - SENSING_OFFSET, SPEEDMAX_EXPLORE_NORMAL, SPEEDMAX_EXPLORE_NORMAL, SEARCH_ACCELERATION);
+    forward.start(HALF_CELL, SPEEDMAX_EXPLORE_NORMAL, SPEEDMAX_EXPLORE_NORMAL, SEARCH_ACCELERATION);
     forward.set_position(ROBOT_OFFSET);
     while(!forward.is_finished()) {
         print_profile();
         // delay(2); // wait for 1 update loop
     }
-    forward.set_position(CELL - SENSING_OFFSET);
+    forward.set_position(CELL);
 }
 
 void Mouse::move_cell() {
@@ -178,16 +177,24 @@ void Mouse::move_backward() {
     move(-BACK_WALL_TO_CENTER, SPEEDMAX_EXPLORE);
 }
 
-void Mouse::turn_after_move(float angle) {
+void Mouse::calibrate_with_front_wall() {
     float remaining = CELL - forward.position();
     forward.start(remaining, SPEEDMAX_PRETURN_NORMAL, SPEEDMAX_PRETURN_NORMAL, SEARCH_ACCELERATION);
-    while(!forward.is_finished()) {
-        delay(2);
-        if (get_front_sensor() > FRONT_REFERENCE) {
-            break;
+    if (front_wall) {
+        while (get_front_sensor() < FRONT_REFERENCE) {
+            delay(2);
+        }
+    }
+    else {
+        while(!forward.is_finished()) {
+            delay(2);
         }
     }
     forward.stop();
+}
+
+void Mouse::turn_after_move(float angle) {
+    calibrate_with_front_wall();
     turn(angle, SPEEDMAX_SPIN_TURN, SPIN_TURN_ACCELERATION);
 }
 
@@ -259,18 +266,7 @@ void Mouse::turn_90_right_smooth() {
 }
 
 void Mouse::turn_around() {
-    float remaining = CELL - forward.position();
-    float speed = forward.speed();
-    if (speed == 0) {
-        speed = SPEEDMAX_PRETURN_NORMAL;
-    }
-    forward.start(remaining, speed, 0, SEARCH_ACCELERATION);
-    while (!forward.is_finished()) {
-        delay(2);
-        if (get_front_sensor() > FRONT_REFERENCE) {
-            forward.set_state(CS_FINISHED);
-        }
-    }
+    calibrate_with_front_wall();
 
     float angle = 180;
     move_angle(angle, SPEEDMAX_SPIN_TURN, SPIN_TURN_ACCELERATION);
@@ -589,6 +585,7 @@ bool Mouse::run_normal(bool to_finish) {
             }
         }
     }
+    calibrate_with_front_wall();
 
     forward.stop();
     disable_mototrs();
