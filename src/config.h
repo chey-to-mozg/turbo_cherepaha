@@ -11,7 +11,7 @@ const bool SERIAL_ENABLE = true;
 
 //** SERIAL PRINT **//
 #define DEBUG_LOGGING 0
-#define DEBUG_LOGGING_WITH_MOTOTRS 1
+#define DEBUG_LOGGING_WITH_MOTOTRS 0
 
 const bool DEBUG_AVAILABLE = DEBUG_LOGGING || DEBUG_LOGGING_WITH_MOTOTRS;
 
@@ -19,7 +19,7 @@ const bool DEBUG_AVAILABLE = DEBUG_LOGGING || DEBUG_LOGGING_WITH_MOTOTRS;
 
 const float ENCODER_PULSES = 3.0; // 3 up pulses per one cycle (total 12 pulses for 2 channels for up and down events)
 const float GEAR_RATIO = 100.0; // numbers from documentation. In real life need to correct it somehow
-const float WHEEL_DIAMETER = 35; // numbers from documentation.
+const float WHEEL_DIAMETER = 34.4; // numbers from documentation.
 
 const float MOUSE_RADIUS = 40.0; // left turn R = 40.455; // reduce in case of pere-turn, increase in case of nedo-turn
 
@@ -33,8 +33,8 @@ const int MAX_PWM = 250;
 const int MIN_PWM = -250;
 
 //** PD  **/
-const float KP_FWD = 2.2;
-const float KD_FWD = 1.0;
+const float KP_FWD = 3.2;
+const float KD_FWD = 2.0;
 
 const float KP_ROT = 2.2;
 const float KD_ROT = 1.1;
@@ -89,7 +89,7 @@ const float STEERING_ADJUST_LIMIT = 10.0; // deg/s
 //**** DISTANCE RELATED ****//
 const int ROBOT_OFFSET = 50;
 const int BACK_WALL_TO_CENTER = HALF_CELL - ROBOT_OFFSET;
-const int SENSING_OFFSET = 10;
+const int SENSING_OFFSET = 30;
 
 //**** Control loop timing. Pre-calculate to save time in interrupts ****..
 const float LOOP_FREQUENCY = 500.0;

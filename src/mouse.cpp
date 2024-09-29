@@ -65,15 +65,23 @@ void Mouse::wait_until_position(float position) {
 }
 
 
-void Mouse::move_angle(float angle) {
+void move_angle(float angle, float speed, float acceleration) {
     // get ready to turn
     disable_steering();
     rotation.reset();
-    rotation.start(angle, SPEEDMAX_SPIN_TURN, 0, SPIN_TURN_ACCELERATION);
+    rotation.start(angle, speed, 0, acceleration);
     while (!rotation.is_finished()) {
         print_profile();
     }
     enable_steering();
+}
+
+void turn(float angle, float speed, float acceleration) {
+    forward.set_target_speed(0);
+    while (forward.speed() != 0) {
+        delay(2);
+    }
+    move_angle(angle, speed, acceleration);
 }
 
 uint8_t Mouse::wait_to_start(bool print_debug) {
@@ -81,9 +89,9 @@ uint8_t Mouse::wait_to_start(bool print_debug) {
     This function will return code of execution
     0 -- normal run from start to finish and back
     1 -- normal run from start to finish and back + save map
-    2 -- smooth run from start to finish and back
-    3 -- smooth run from start to finish and back + save map
-    4 -- normal run from start to finish with loaded map
+    2 -- normal run from start to finish with loaded map
+    3 -- smooth run from start to finish and back
+    4 -- smooth run from start to finish and back + save map
     5 -- smooth run from start to finish with loaded map
     6 -- ...
     7 -- Print maze info
@@ -153,14 +161,13 @@ void Mouse::move_from_wall() {
 }
 
 void Mouse::move_to_center() {
-    forward.start(HALF_CELL, SPEEDMAX_EXPLORE, SPEEDMAX_EXPLORE, SEARCH_ACCELERATION);
+    forward.start(HALF_CELL - SENSING_OFFSET, SPEEDMAX_EXPLORE_NORMAL, SPEEDMAX_EXPLORE_NORMAL, SEARCH_ACCELERATION);
     forward.set_position(ROBOT_OFFSET);
     while(!forward.is_finished()) {
         print_profile();
         // delay(2); // wait for 1 update loop
     }
-    forward.set_position(CELL);
-    
+    forward.set_position(CELL - SENSING_OFFSET);
 }
 
 void Mouse::move_cell() {
@@ -171,25 +178,25 @@ void Mouse::move_backward() {
     move(-BACK_WALL_TO_CENTER, SPEEDMAX_EXPLORE);
 }
 
-void Mouse::turn_90_left() {
-    forward.set_target_speed(SPEEDMAX_PRETURN);
-    wait_until_position(CELL);
+void Mouse::turn_after_move(float angle) {
+    float remaining = CELL - forward.position();
+    forward.start(remaining, SPEEDMAX_PRETURN_NORMAL, SPEEDMAX_PRETURN_NORMAL, SEARCH_ACCELERATION);
+    while(!forward.is_finished()) {
+        delay(2);
+        if (get_front_sensor() > FRONT_REFERENCE) {
+            break;
+        }
+    }
     forward.stop();
-    stop_motors();
-    
-    float angle = 90;
-    move_angle(angle);
-    
+    turn(angle, SPEEDMAX_SPIN_TURN, SPIN_TURN_ACCELERATION);
+}
+
+void Mouse::turn_90_left() {
+    turn_after_move(90);
 }
 
 void Mouse::turn_90_right() {
-    forward.set_target_speed(SPEEDMAX_PRETURN);
-    wait_until_position(CELL);
-    forward.stop();
-    stop_motors();
-    
-    float angle = -90;
-    move_angle(angle);
+    turn_after_move(-90);
 }
 
 void Mouse::turn_90_left_smooth() {
@@ -252,23 +259,24 @@ void Mouse::turn_90_right_smooth() {
 }
 
 void Mouse::turn_around() {
-    
-    reset_steering();
-    if (!is_center) {
-        forward.start(HALF_CELL, forward.speed(), 30, forward.acceleration());
-        while (!forward.is_finished()) {
-            delay(2);
-            if (g_front_sensor > FRONT_REFERENCE) {
-                break;
-            }
-        }
-        is_center = true;
+    float remaining = CELL - forward.position();
+    float speed = forward.speed();
+    if (speed == 0) {
+        speed = SPEEDMAX_PRETURN_NORMAL;
     }
-    forward.stop();
+    forward.start(remaining, speed, 0, SEARCH_ACCELERATION);
+    while (!forward.is_finished()) {
+        delay(2);
+        if (get_front_sensor() > FRONT_REFERENCE) {
+            forward.set_state(CS_FINISHED);
+        }
+    }
+
     float angle = 180;
-    move_angle(angle);
+    move_angle(angle, SPEEDMAX_SPIN_TURN, SPIN_TURN_ACCELERATION);
+    
     if (front_wall) {
-        forward.start(-HALF_CELL, SPEEDMAX_EXPLORE, 30, forward.acceleration());
+        forward.start(-HALF_CELL, SPEEDMAX_PRETURN_NORMAL, 0, forward.acceleration());
         while (!forward.is_finished()) {
             delay(2);
         }
@@ -289,6 +297,21 @@ void Mouse::update_walls() {
       right_wall = g_is_right_wall;
     }
     maze.set_walls(left_wall, front_wall, right_wall);
+}
+
+void print_maze_info(Pair target) {
+    Serial.print("Current position: ");
+    Serial.print(maze.get_position().y);
+    Serial.print(" ");
+    Serial.println(maze.get_position().x);
+    Serial.print("Finish position: ");
+    Serial.print(target.y);
+    Serial.print(" ");
+    Serial.println(target.x);
+    Serial.print("On finish");
+    Serial.print(" ");
+    Serial.println(target == maze.get_position());
+    maze.print_path();
 }
 
 bool Mouse::run_smooth(bool to_finish, bool check_walls) {
@@ -462,31 +485,32 @@ bool Mouse::run_normal(bool to_finish) {
     bool recalculate = false;
 
     if (path_exists) {
-        reset_encoders();
-        reset_motor_controllers();
-        enable_mototrs();
+        if (!DEBUG_LOGGING) {
+            reset_encoders();
+            reset_motor_controllers();
+            enable_mototrs();
+        }
+        
 
         while(path_exists && maze.get_position() != target) {
             for (int i = 0; i < maze.get_path_len(); i++) {
+                if (button_pressed()) {
+                    return false;
+                }
+                update_walls();
+                maze.print_maze();
+
                 enable_steering();
+
                 next_path = maze.get_next_move();
+
                 if (DEBUG_LOGGING) {
-                    Serial.print("Current position: ");
-                    Serial.print(maze.get_position().y);
-                    Serial.print(" ");
-                    Serial.println(maze.get_position().x);
-                    Serial.print("Finish position: ");
-                    Serial.print(target.y);
-                    Serial.print(" ");
-                    Serial.println(target.x);
-                    Serial.print("On finish");
-                    Serial.print(" ");
-                    Serial.println(target == maze.get_position());
+                    print_maze_info(target);
                     Serial.print("Next move: ");
                     Serial.println(next_path);
-                    maze.print_path();
                     wait_to_start(false);                
                 }
+
                 if (is_start) {
                     Serial.println("starting");
                     if (!DEBUG_LOGGING) {
@@ -497,7 +521,6 @@ bool Mouse::run_normal(bool to_finish) {
                 }
                 
                 // check if mouse can move next step, otherwise floodfill
-                Serial.println("try move");
                 switch (next_path)
                 {
                     case 'F':
@@ -506,25 +529,13 @@ bool Mouse::run_normal(bool to_finish) {
                         }
                         else {
                             if (!DEBUG_LOGGING) {
-                                if (is_center) {
-                                    float remaining = forward.position() - CELL;
-                                    forward.start(CELL - remaining, SPEEDMAX_EXPLORE, SPEEDMAX_EXPLORE, SEARCH_ACCELERATION);
-                                    wait_until_position(HALF_CELL);
-                                    is_center = false;
+                                if (forward.speed() == 0 || forward.speed() == SPEEDMAX_PRETURN_NORMAL) {
+                                    forward.start(CELL, SPEEDMAX_EXPLORE_NORMAL, SPEEDMAX_EXPLORE_NORMAL, SEARCH_ACCELERATION);
                                 }
                                 else {
-                                    forward.adjust_position(-HALF_CELL);
-                                    wait_until_position(CELL);
+                                    forward.adjust_position(-CELL);
                                 }
-                                // char after_path = maze.get_next_move(false);
-                                // if (after_path == 'R' || after_path == 'L') {
-                                //     forward.set_target_speed(SPEEDMAX_PRETURN);
-                                // }
-                                // else if (forward.speed() != SPEEDMAX_EXPLORE) {
-                                //     forward.set_target_speed(SPEEDMAX_EXPLORE);
-                                // }
-                                
-                                
+                                wait_until_position(CELL - SENSING_OFFSET);
                             }
                             maze.update_position();
                         }
@@ -536,7 +547,6 @@ bool Mouse::run_normal(bool to_finish) {
                         else {
                             if (!DEBUG_LOGGING) {
                                 turn_90_right();
-                                is_center = true;
                             }
                             maze.update_direction(RIGHT);
                         }
@@ -555,7 +565,6 @@ bool Mouse::run_normal(bool to_finish) {
                         else {
                             if (!DEBUG_LOGGING) {
                                 turn_90_left();
-                                is_center = true;
                             }
                             maze.update_direction(LEFT);
                         }
@@ -575,23 +584,10 @@ bool Mouse::run_normal(bool to_finish) {
                     if (DEBUG_LOGGING) {
                         Serial.println("Recalculated!");
                     }
-                    stop();
                     break;
-                    
-                }
-                else {
-                    update_walls();
-                    maze.print_maze();
                 }
             }
         }
-    }
-
-    if (!to_finish) {
-        if (!DEBUG_LOGGING) {
-            turn_around();
-        }
-        maze.update_direction(DOWN);
     }
 
     forward.stop();

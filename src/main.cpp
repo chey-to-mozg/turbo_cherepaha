@@ -26,14 +26,38 @@ void setup() {
 }
 
 void test_run() {
-  // enable_steering();
-  // reset_encoders();
-  // reset_motor_controllers();
-  // enable_mototrs();
+  enable_steering();
+  reset_encoders();
+  reset_motor_controllers();
+  enable_mototrs();
+
+  // mouse.move(100, SPEEDMAX_EXPLORE);
+  // for (int i = 0; i < 9; i++) {
+  //   forward.adjust_position(-100);
+  //   mouse.wait_until_position(100);
+  // }
+  
+  mouse.move_to_center();
+  forward.adjust_position(-CELL);
+  mouse.wait_until_position(CELL - SENSING_OFFSET);
+  float remaining = CELL - forward.position();
+  forward.start(remaining, SPEEDMAX_PRETURN_NORMAL, SPEEDMAX_PRETURN_NORMAL, SEARCH_ACCELERATION);
+  while(!forward.is_finished()) {
+      delay(2);
+      if (get_front_sensor() > FRONT_REFERENCE) {
+          break;
+      }
+  }
+  forward.stop();
+  // mouse.turn_90_right_smooth();
+  // mouse.turn_around();
 
   // mouse.move_from_wall();
-  // forward.adjust_position(-CELL);
-  // mouse.wait_until_position(CELL - SENSING_OFFSET);
+  // mouse.turn_90_right_smooth();
+  // mouse.turn_90_right_smooth();
+
+  // // forward.adjust_position(-CELL);
+  // // mouse.wait_until_position(CELL - SENSING_OFFSET);
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
 
@@ -57,7 +81,7 @@ void test_run() {
   // int l = g_left_sensor;
   // int f = g_front_sensor;
   // int r = g_right_sensor;
-  // mouse.stop();
+  mouse.stop();
   // Serial.println(l);
   // Serial.println(f);
   // Serial.println(r);
@@ -65,15 +89,64 @@ void test_run() {
 }
 
 void loop() {
-  Serial.println(mode);
   if (mode == 0){
-    // TODO add normal run and back here
+    //** NORMAL RUN **/
+
+    mouse.reset_mouse();
+    maze.reset_maze();
+
+    bool finished = mouse.run_normal();
+    if (finished) {
+      mouse.finish_ping();
+      finished = mouse.run_normal(false);
+    }
+
+    if (!finished) {
+      mouse.error_ping();
+      mouse.print_info();
+    }
   }
   else if (mode == 1)
   {
-    /* code */
+    //** NORMAL RUN WITH MAP SAVING **/
+
+    mouse.reset_mouse();
+    maze.reset_maze();
+
+    bool finished = mouse.run_normal();
+    if (finished) {
+      mouse.finish_ping();
+      finished = mouse.run_normal(false);
+    }
+
+    if (!finished) {
+      mouse.error_ping();
+      mouse.print_info();
+    }
+
+    maze.save_maze();
   }
   else if (mode == 2)
+  {
+    //** NORMAL RUN WITH MAP LOADING **/
+
+    mouse.reset_mouse();
+    maze.reset_maze();
+
+    maze.load_maze();
+
+    bool finished = mouse.run_normal();
+    if (finished) {
+      mouse.finish_ping();
+      finished = mouse.run_normal(false);
+    }
+
+    if (!finished) {
+      mouse.error_ping();
+      mouse.print_info();
+    }
+  }
+  else if (mode == 3)
   {
     // smouth run and back
     bool finished = mouse.run_smooth();
@@ -84,14 +157,11 @@ void loop() {
 
     if (!finished) {
       mouse.error_ping();
+      mouse.print_info();
     }
     
     mouse.reset_mouse();
     maze.reset_maze();
-  }
-  else if (mode == 3)
-  {
-    
   }
   else if (mode == 4)
   {
@@ -103,11 +173,16 @@ void loop() {
   }
   else if (mode == 6)
   {
-    /* code */
+    test_run();
   }
   else if (mode == 7)
   {
     // print maze related info
+      Serial.println("Maze before load");
+      maze.print_maze();
+      maze.load_maze();
+      maze.floodfill(maze.get_finish());
+      Serial.println("Maze after load");
       mouse.print_info();
       while (!button_pressed())
       {

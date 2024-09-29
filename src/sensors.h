@@ -47,6 +47,8 @@ void enable_steering();
 void disable_steering();
 void update_gyro_reference(float diff);
 
+int get_front_sensor();
+
 void reset_gyro();
 void calibrate_gyro();
 

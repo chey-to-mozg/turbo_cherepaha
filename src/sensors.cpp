@@ -33,6 +33,13 @@ volatile float g_gyro_angle = 0;
 
 int read_step = 0;
 
+int get_front_sensor() {
+    int value;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        value = g_front_sensor;
+    }
+    return value;
+}
 
 int read_row(uint8_t sensor) {
     int rawData = 0;

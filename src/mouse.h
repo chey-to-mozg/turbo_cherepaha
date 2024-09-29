@@ -9,11 +9,13 @@
 #include "profile.h"
 #include "maze.h"
 
-#define SEARCH_ACCELERATION 1000
+#define SEARCH_ACCELERATION 2000
 #define SPIN_TURN_ACCELERATION 1000
 #define SPIN_TURN_SMOOTH_ACCELERATION 1500
 #define SPEEDMAX_EXPLORE 150
 #define SPEEDMAX_PRETURN 100
+#define SPEEDMAX_EXPLORE_NORMAL 250
+#define SPEEDMAX_PRETURN_NORMAL 100
 #define SPEEDMAX_SMOOTH_TURN 90
 #define SPEEDMAX_SPIN_TURN 300
 
@@ -43,7 +45,7 @@ class Mouse {
         bool run_normal(bool to_finish = true);
         void reset_mouse();
     private:
-        void move_angle(float angle);
+        void turn_after_move(float angle);
 
         bool is_start = true;
         bool is_center = false;
