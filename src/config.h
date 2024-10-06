@@ -40,7 +40,7 @@ const float KP_ROT = 2.2;
 const float KD_ROT = 1.1;
 
 // controller constants for the steering controller
-const float KP_STEER = 0.5;
+const float KP_STEER = 1.0;
 const float KD_STEER = 0.0;
 
 //** MAZE **/
@@ -57,7 +57,7 @@ enum Direction: uint8_t {
 };
 
 //** SENSORS **/
-const int LEFT_CALIBRATION = 265; // test when robot centered and no front wall
+const int LEFT_CALIBRATION = 240; // test when robot centered and no front wall
 const int RIGHT_CALIBRATION = 265; // test when robot centered and no front wall
 const int FRONT_CALIBRATION_LEFT = 300; // test when robot with back walls
 // const int FRONT_CALIBRATION_RIGHT = 195; // test when robot with back walls
@@ -89,7 +89,7 @@ const float STEERING_ADJUST_LIMIT = 10.0; // deg/s
 //**** DISTANCE RELATED ****//
 const int ROBOT_OFFSET = 60;
 const int BACK_WALL_TO_CENTER = HALF_CELL - ROBOT_OFFSET;
-const int SENSING_OFFSET = 60;
+const int SENSING_OFFSET = 30;
 
 //**** Control loop timing. Pre-calculate to save time in interrupts ****..
 const float LOOP_FREQUENCY = 500.0;

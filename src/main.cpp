@@ -26,29 +26,35 @@ void setup() {
 }
 
 void test_run() {
-  enable_steering();
-  reset_encoders();
-  reset_motor_controllers();
-  enable_mototrs();
+  // enable_steering();
+  // reset_encoders();
+  // reset_motor_controllers();
+  // enable_mototrs();
 
   // mouse.move(100, SPEEDMAX_EXPLORE);
   // for (int i = 0; i < 9; i++) {
   //   forward.adjust_position(-100);
   //   mouse.wait_until_position(100);
   // }
-  
-  mouse.move_to_center();
-  forward.adjust_position(-CELL);
-  mouse.wait_until_position(CELL - SENSING_OFFSET);
-  float remaining = CELL - forward.position();
-  forward.start(remaining, SPEEDMAX_PRETURN_NORMAL, SPEEDMAX_PRETURN_NORMAL, SEARCH_ACCELERATION);
-  while(!forward.is_finished()) {
-      delay(2);
-      if (get_front_sensor() > FRONT_REFERENCE) {
-          break;
-      }
-  }
-  forward.stop();
+  maze.load_maze();
+  maze.print_maze();
+  maze.lock_maze();
+  maze.floodfill(maze.get_finish());
+  maze.print_maze();
+  maze.find_path(maze.get_start());
+  maze.print_path();
+  // mouse.move_to_center();
+  // forward.adjust_position(-CELL);
+  // mouse.wait_until_position(CELL - SENSING_OFFSET);
+  // float remaining = CELL - forward.position();
+  // forward.start(remaining, SPEEDMAX_PRETURN_NORMAL, SPEEDMAX_PRETURN_NORMAL, SEARCH_ACCELERATION);
+  // while(!forward.is_finished()) {
+  //     delay(2);
+  //     if (get_front_sensor() > FRONT_REFERENCE) {
+  //         break;
+  //     }
+  // }
+  // forward.stop();
   // mouse.turn_90_right_smooth();
   // mouse.turn_around();
 
@@ -134,6 +140,7 @@ void loop() {
     maze.reset_maze();
 
     maze.load_maze();
+    maze.lock_maze();
 
     bool finished = mouse.run_normal();
     if (finished) {
@@ -169,7 +176,12 @@ void loop() {
   }
   else if (mode == 5)
   {
-    /* code */
+    if (maze.get_direction() == UP) {
+      maze.set_direction(RIGHT);
+    }
+    else {
+      maze.set_direction(UP);
+    }
   }
   else if (mode == 6)
   {

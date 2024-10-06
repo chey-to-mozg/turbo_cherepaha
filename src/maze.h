@@ -51,6 +51,7 @@ class Maze {
         void update_direction(uint8_t change);
         void update_position();
         Pair get_position();
+        uint8_t get_direction();
         Pair get_finish();
         Pair get_start();
         void set_position(Pair position);
@@ -59,6 +60,7 @@ class Maze {
         void load_maze();
         void print_maze(); // print walls with flooded values
         void print_path();
+        void lock_maze();
 
     private:
         uint8_t maze[MAZE_WIDTH][MAZE_WIDTH];
@@ -66,7 +68,7 @@ class Maze {
         Pair start_position = {15, 0};
         Pair mouse_position = start_position;
         uint8_t mouse_direction = UP;
-        Pair target = {15, 2};
+        Pair target = {13, 1};
         char path[MAZE_WIDTH * MAZE_WIDTH];
         uint8_t path_len = 0;
         uint8_t current_path_idx = 0;

@@ -79,16 +79,17 @@ void turn_wall_leds(bool left_wall, bool front_wall, bool right_wall) {
     turn_leds(leds);
 }
 
-void turn_mode_leds(uint8_t mode, bool signal_led) {
+void turn_mode_leds(uint8_t mode, uint8_t signal_led) {
     uint8_t mode_leds[3] = {BLUE_RIGHT_LED, GREEN_RIGHT_LED, RED_RIGHT_LED};
+    uint8_t signal_leds[2] = {BLUE_LEFT_LED, GREEN_LEFT_LED};
     uint8_t leds = 0;
     for (int i = 0; i < 3; i++) {
         if (mode >> i & 1) {
             leds |= mode_leds[i];
         }
     }
-    if (signal_led) {
-        leds |= BLUE_LEFT_LED;
+    if (signal_led > 0) {
+        leds |= signal_leds[signal_led - 1];
     }
     turn_leds(leds);
 }

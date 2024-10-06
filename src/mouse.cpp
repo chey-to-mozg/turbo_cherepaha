@@ -96,7 +96,7 @@ uint8_t Mouse::wait_to_start(bool print_debug) {
     7 -- Print maze info
     */
     uint8_t mode = 0;
-    bool signal = false;
+    uint8_t signal = 0;
 
     while(!g_left_button) {
         if (print_debug) {
@@ -110,7 +110,13 @@ uint8_t Mouse::wait_to_start(bool print_debug) {
             delay(500);
         }
         turn_mode_leds(mode, signal);
-        signal = !signal;
+        if (signal == 0) {
+            signal = (maze.get_direction() == UP) ? 1 : 2;
+        }
+        else {
+            signal = 0;
+        }
+        
         delay(200);
     }
     turn_all_leds();
@@ -160,7 +166,14 @@ void Mouse::move_from_wall() {
 }
 
 void Mouse::move_to_center() {
-    forward.start(HALF_CELL, SPEEDMAX_EXPLORE_NORMAL, SPEEDMAX_EXPLORE_NORMAL, SEARCH_ACCELERATION);
+    int speed;
+    if (front_wall) {
+        speed = SPEEDMAX_PRETURN_NORMAL;
+    }
+    else {
+        speed = SPEEDMAX_EXPLORE_NORMAL;
+    }
+    forward.start(HALF_CELL, speed, speed, SEARCH_ACCELERATION);
     forward.set_position(ROBOT_OFFSET);
     while(!forward.is_finished()) {
         print_profile();
@@ -191,6 +204,7 @@ void Mouse::calibrate_with_front_wall() {
         }
     }
     forward.stop();
+    forward.set_position(CELL);
 }
 
 void Mouse::turn_after_move(float angle) {

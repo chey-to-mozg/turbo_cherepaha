@@ -37,10 +37,6 @@ bool Maze::is_visited() {
     return (walls[mouse_position.y][mouse_position.x] & VISITED) == VISITED;
 }
 
-void Maze::set_visited() {
-    walls[mouse_position.y][mouse_position.x] |= VISITED;
-}
-
 void Maze::set_walls(bool is_left_wall, bool is_front_wall, bool is_right_wall) {
     if (is_visited()) {
         return;
@@ -54,17 +50,16 @@ void Maze::set_walls(bool is_left_wall, bool is_front_wall, bool is_right_wall) 
 
     for (uint8_t i = 0; i < 3; i++) {
         uint8_t wall_idx = _walls_idx[i];
+        uint8_t neigh_y = (mouse_position.y + NEIGHBOURS[wall_idx].y) % MAZE_WIDTH;
+        uint8_t neigh_x = (mouse_position.x + NEIGHBOURS[wall_idx].x) % MAZE_WIDTH;
+        uint8_t neigh_wall_idx = (wall_idx + 2) % 4;
         if (_walls[i] && !(walls[mouse_position.y][mouse_position.x] & WALLS_VISITED[wall_idx])) {
             walls[mouse_position.y][mouse_position.x] |= WALLS[wall_idx];
-            uint8_t neigh_y = (mouse_position.y + NEIGHBOURS[wall_idx].y) % MAZE_WIDTH;
-            uint8_t neigh_x = (mouse_position.x + NEIGHBOURS[wall_idx].x) % MAZE_WIDTH;
-            uint8_t neigh_wall_idx = (wall_idx + 2) % 4;
             walls[neigh_y][neigh_x] |= WALLS[neigh_wall_idx];
-            walls[neigh_y][neigh_x] |= WALLS_VISITED[neigh_wall_idx];
         }
+        walls[mouse_position.y][mouse_position.x] |= WALLS_VISITED[wall_idx];
+        walls[neigh_y][neigh_x] |= WALLS_VISITED[neigh_wall_idx];
     }
-    
-    set_visited();
 }
 
 void Maze::update_direction(uint8_t change) {
@@ -79,6 +74,10 @@ void Maze::update_position() {
 
 Pair Maze::get_position() {
     return mouse_position;
+}
+
+uint8_t Maze::get_direction() {
+    return mouse_direction;
 }
 
 Pair Maze::get_finish() {
@@ -181,6 +180,19 @@ uint8_t Maze::get_path_len() {
     return path_len;
 }
 
+void Maze::lock_maze() {
+    for (uint8_t y = 0; y < MAZE_WIDTH; y++) {
+        for (uint8_t x = 0; x < MAZE_WIDTH; x++) {
+            for (uint8_t i = 0; i < 4; i++) {
+                if ((walls[y][x] & WALLS_VISITED[i]) == 0) {
+                    walls[y][x] |= WALLS[i];
+                }
+            }
+        }
+    }
+                    
+}
+
 void Maze::save_maze() {
     if (DEBUG_AVAILABLE) {
        Serial.println("Saving maze...");
@@ -248,7 +260,6 @@ void Maze::print_maze() {
                 uint8_t wall_value = walls[y][x];
                 bool left_wall = (wall_value & LEFT_WALL);
                 bool down_wall = (wall_value & DOWN_WALL);
-                
                 
                 if (sub_y == 0) {
                     if (left_wall) {
