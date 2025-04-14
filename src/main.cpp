@@ -27,23 +27,24 @@ void setup() {
 
 void test_run() {
   // enable_steering();
-  // reset_encoders();
-  // reset_motor_controllers();
-  // enable_mototrs();
+  reset_encoders();
+  reset_motor_controllers();
+  enable_mototrs();
 
   // mouse.move(100, SPEEDMAX_EXPLORE);
   // for (int i = 0; i < 9; i++) {
   //   forward.adjust_position(-100);
   //   mouse.wait_until_position(100);
   // }
-  maze.load_maze();
-  maze.print_maze();
-  maze.lock_maze();
-  maze.floodfill(maze.get_finish());
-  maze.print_maze();
-  maze.find_path(maze.get_start());
-  maze.print_path();
+  // maze.load_maze();
+  // maze.print_maze();
+  // maze.lock_maze();
+  // maze.floodfill(maze.get_finish());
+  // maze.print_maze();
+  // maze.find_path(maze.get_start());
+  // maze.print_path();
   // mouse.move_to_center();
+  mouse.move_from_wall();
   // forward.adjust_position(-CELL);
   // mouse.wait_until_position(CELL - SENSING_OFFSET);
   // float remaining = CELL - forward.position();
@@ -55,15 +56,16 @@ void test_run() {
   //     }
   // }
   // forward.stop();
-  // mouse.turn_90_right_smooth();
+  mouse.turn_90_left_smooth();
+  mouse.turn_90_right_smooth();
   // mouse.turn_around();
 
   // mouse.move_from_wall();
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
 
-  // // forward.adjust_position(-CELL);
-  // // mouse.wait_until_position(CELL - SENSING_OFFSET);
+  // forward.adjust_position(-CELL);
+  // mouse.wait_until_position(CELL - SENSING_OFFSET);
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
 
@@ -97,20 +99,29 @@ void test_run() {
 void loop() {
   if (mode == 0){
     //** NORMAL RUN **/
+    set_left_motor_pwm(50);
+    set_right_motor_pwm(50);
+    delay(5000);
+    stop_motors();
+    delay(5000);
+    set_left_motor_pwm(100);
+    set_right_motor_pwm(100);
+    delay(5000);
+    stop_motors();
+    delay(5000);
+    // mouse.reset_mouse();
+    // maze.reset_maze();
 
-    mouse.reset_mouse();
-    maze.reset_maze();
+    // bool finished = mouse.run_normal();
+    // if (finished) {
+    //   mouse.finish_ping();
+    //   finished = mouse.run_normal(false);
+    // }
 
-    bool finished = mouse.run_normal();
-    if (finished) {
-      mouse.finish_ping();
-      finished = mouse.run_normal(false);
-    }
-
-    if (!finished) {
-      mouse.error_ping();
-      mouse.print_info();
-    }
+    // if (!finished) {
+    //   mouse.error_ping();
+    //   mouse.print_info();
+    // }
   }
   else if (mode == 1)
   {
@@ -156,6 +167,13 @@ void loop() {
   else if (mode == 3)
   {
     // smouth run and back
+
+    mouse.reset_mouse();
+    maze.reset_maze();
+    
+    maze.load_maze();
+    maze.lock_maze();
+
     bool finished = mouse.run_smooth();
     if (finished) {
       mouse.finish_ping();
@@ -166,13 +184,29 @@ void loop() {
       mouse.error_ping();
       mouse.print_info();
     }
-    
-    mouse.reset_mouse();
-    maze.reset_maze();
   }
   else if (mode == 4)
   {
-    /* code */
+    // smouth run and back
+
+    mouse.reset_mouse();
+    maze.reset_maze();
+
+    maze.set_direction(RIGHT);
+    
+    maze.load_maze();
+    maze.lock_maze();
+
+    bool finished = mouse.run_smooth();
+    if (finished) {
+      mouse.finish_ping();
+      finished = mouse.run_smooth(false);
+    }
+
+    if (!finished) {
+      mouse.error_ping();
+      mouse.print_info();
+    }
   }
   else if (mode == 5)
   {
