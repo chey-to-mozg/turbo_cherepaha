@@ -4,54 +4,64 @@ const float MM_PER_COUNT_LEFT = (1 - ROTATION_BIAS) * PI * WHEEL_DIAMETER / (ENC
 const float MM_PER_COUNT_RIGHT = (1 + ROTATION_BIAS) * PI * WHEEL_DIAMETER / (ENCODER_PULSES * GEAR_RATIO);
 const float DEG_PER_MM_DIFFERENCE = (180.0 / (2 * MOUSE_RADIUS * PI));
 
-int g_left_dir;
-int g_right_dir;
+int dir_left;
+int dir_right;
 
-volatile int g_count_left;
-volatile int g_count_right;
+volatile int count_left;
+volatile int count_right;
 
-float s_total_left;
-float s_total_right;
+int total_conut_left;
+int total_count_right;
 
-float s_distance_left;
-float s_distance_right;
+float distance_left;
+float distance_increment_left;
+float distance_right;
+float distance_increment_right;
 
-static volatile int left_delta;
-static volatile int right_delta;
+static volatile int delta_left;
+static volatile int delta_right;
 
-
-int diff_left;
-int diff_right;
-
-float g_increment;
-float g_distance;
-float g_angle;
-float g_angle_increment;
+float distance;
+float angle;
 
 void left_increment() {
-  g_count_left += g_left_dir;
+  static bool oldA = false;
+  static bool oldB = false;
+  bool newB = digitalRead(ENCODER_LEFT_B);
+  bool newA = digitalRead(ENCODER_LEFT_CLK) ^ newB;
+  int delta = ENCODER_LEFT_POLARITY * ((oldA ^ newB) - (newA ^ oldB));
+  count_left += delta;
+  oldA = newA;
+  oldB = newB;
 }
 
 void right_increment() {
-  g_count_right += g_right_dir;
+  static bool oldA = false;
+  static bool oldB = false;
+  bool newB = digitalRead(ENCODER_RIGHT_B);
+  bool newA = digitalRead(ENCODER_RIGHT_CLK) ^ newB;
+  int delta = ENCODER_RIGHT_POLARITY * ((oldA ^ newB) - (newA ^ oldB));
+  count_right += delta;
+  oldA = newA;
+  oldB = newB;
 }
 
 void reset_encoders() {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      left_delta = 0;
-      right_delta = 0;
-      g_count_right = 0;
-      g_count_left = 0;
-      g_distance = 0;
-      g_angle = 0;
-      g_left_dir = 1;
-      g_right_dir = 1;
-      s_distance_left = 0;
-      s_total_left = 0;
-      s_distance_right = 0;
-      s_total_right = 0;
-      g_increment = 0;
-      g_angle_increment = 0;
+      dir_left = 1;
+      dir_right = 1;
+      count_left = 0;
+      count_right = 0;
+      total_conut_left = 0;
+      total_count_right = 0;
+      distance_left = 0;
+      distance_increment_left = 0;
+      distance_right = 0;
+      distance_increment_right = 0;
+      delta_left = 0;
+      delta_right = 0;
+      distance = 0;
+      angle = 0; 
     }
 }
 
@@ -65,50 +75,46 @@ void init_encoders() {
     reset_encoders();
 }
 
-float robot_position() {
-  float distance;
-  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { distance = g_distance; }
-  return distance;
+float get_robot_position() {
+  float _distance;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { _distance = distance; }
+  return _distance;
 }
 
-float robot_angle() {
-  float angle;
-  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { angle = g_angle; }
-  return angle;
+float get_robot_angle() {
+  float _angle;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { _angle = angle; }
+  return _angle;
 }
 
-float robot_fwd_increment() {
-    float distance;
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { 
-      distance = g_increment; 
-    }
-    return distance;
+float get_increment_left() {
+  float _increment;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { _increment = distance_increment_left; }
+  return _increment;
 }
 
-float robot_rot_increment() {
-    float distance;
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { 
-      distance = g_angle_increment; 
-    }
-    return distance;
+float get_increment_right() {
+  float _increment;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { _increment = distance_increment_right; }
+  return _increment;
 }
 
 void update_encoders() {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      left_delta = g_count_left;
-      right_delta = g_count_right;
-      g_count_left = 0;
-      g_count_right = 0;
+      delta_left = count_left;
+      delta_right = count_right;
+      count_left = 0;
+      count_right = 0;
     }
-    s_total_left += left_delta;
-    s_total_right += right_delta;
-    float left_change = left_delta * MM_PER_COUNT_LEFT;
-    float right_change = right_delta * MM_PER_COUNT_RIGHT;
-    s_distance_left += left_change;
-    s_distance_right += right_change;
-    g_increment = 0.5 * (right_change + left_change);
-    g_angle_increment = (right_change - left_change) * DEG_PER_MM_DIFFERENCE;
-    g_angle += g_angle_increment;
-    g_distance += g_increment;
+    total_conut_left += delta_left;
+    total_count_right += delta_right;
+    distance_increment_left = delta_left * MM_PER_COUNT_LEFT;
+    distance_increment_right = delta_right * MM_PER_COUNT_RIGHT;
+    distance_left += distance_increment_left;
+    distance_right += distance_increment_right;
+    float distance_increment = 0.5 * (distance_increment_left + distance_increment_right);
+    float angle_increment = (distance_increment_right - distance_increment_left) * DEG_PER_MM_DIFFERENCE;
+    angle += angle_increment;
+    distance += distance_increment;
 }
 

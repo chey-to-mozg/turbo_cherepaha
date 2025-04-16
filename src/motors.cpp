@@ -1,136 +1,127 @@
 #include "motors.h"
 
-float s_err_fwd;
-float s_err_rot;
+Motor motor_left(LEFT_DIR, LEFT_PWM, ENCODER_LEFT_POLARITY);
+Motor motor_right(RIGHT_DIR, RIGHT_PWM, ENCODER_RIGHT_POLARITY);
 
-static float old_err_fwd = 0;
-static float old_err_rot = 0;
-float var1;
-float var2;
-
-float s_pwm_left;
-float s_pwm_right;
-
-bool l_motors_enabled;
-
-void init_motors() {
-    pinMode(LEFT_DIR, OUTPUT);
-    pinMode(RIGHT_DIR, OUTPUT);
-    pinMode(LEFT_PWM, OUTPUT);
-    pinMode(RIGHT_PWM, OUTPUT);
-
-    stop_motors();
-    disable_mototrs();
-    reset_motor_controllers();
+Motor::Motor(int dir_pin, int pwm_pin, int encoder_polarity) {
+    this->dir_pin = dir_pin;
+    this->pwm_pin = pwm_pin;
+    this->polarity = encoder_polarity;
+    pinMode(dir_pin, OUTPUT);
+    pinMode(pwm_pin, OUTPUT);
 }
 
-void reset_motor_controllers() {
-  s_err_fwd = 0;
-  s_err_rot = 0;
-  old_err_fwd = 0;
-  old_err_rot = 0;
+void Motor::set_speed(float speed) {
+    this->accelerating = true;
+    this->acceleration_speed = this->actual_speed;
+    this->speed = speed;
+    this->cum_speed_error = 0;
+    update_encoders();
+    this->last_update = millis();
 }
 
-void disable_mototrs() {
-    l_motors_enabled = false;
+void Motor::set_direction(int direction) {
+    this->direction = direction;
+    int polarity_bit = (direction + 1) >> 1;
+    digitalWrite(this->dir_pin, polarity_bit ^ this->polarity);
 }
 
-void enable_mototrs() {
-    l_motors_enabled = true;
-}
-
-void set_direction_left(int forward) {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        g_left_dir = forward;
-    }
-    int polarity_bit = (forward + 1) >> 1;
-    digitalWrite(LEFT_DIR, polarity_bit ^ ENCODER_LEFT_POLARITY);
-}
-
-void set_direction_right(int forward) {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        g_right_dir = forward;
-    }
-    int polarity_bit = (forward + 1) >> 1;
-    digitalWrite(RIGHT_DIR, polarity_bit ^ ENCODER_RIGHT_POLARITY);
-}
-
-void set_left_motor_pwm(int pwm) {
+void Motor::set_pwm(int pwm) {
     pwm = constrain(pwm, MIN_PWM, MAX_PWM);
     if (pwm < 0) {
-        set_direction_left(-1);
+        set_direction(-1);
         pwm *= -1;
     }
     else {
-        set_direction_left(1);
+        set_direction(1);
     }
-    s_pwm_left = pwm;
-    analogWrite(LEFT_PWM, pwm);
+    this->pwm = pwm;
+    analogWrite(this->pwm_pin, pwm);
 }
 
-void set_right_motor_pwm(int pwm) {
-    pwm = constrain(pwm, MIN_PWM, MAX_PWM);
-    if (pwm < 0) {
-        set_direction_right(-1);
-        pwm *= -1;
+void Motor::accelerate() {
+    if (this->accelerating) {
+        if (abs(this->acceleration_speed) > abs(this->speed)) {
+            this->accelerating = false;
+            this->acceleration_speed = this->speed;
+        }
+        else {
+            int speed_delta = 3;
+            if (this->speed < 0) {
+                speed_delta *= -1;
+            }
+            this->acceleration_speed += speed_delta;
+        }
+    }
+}
+
+void Motor::update_pwm(float distance_change, float angle_error) {
+    accelerate();
+    uint32_t cur_time = millis();
+    uint32_t time_delta_millis = cur_time - this->last_update;
+    float time_delta = (float)time_delta_millis / 1000; // secs
+    if (time_delta == 0) {
+        time_delta = ULONG_MAX / 1000;
+    }
+   
+    this->actual_speed = distance_change / time_delta;
+    this->last_update = cur_time;
+    float pwm_new;
+    if (this->speed == 0) {
+        pwm_new = 0;
+        this->acceleration_speed = 0;
+        this->cum_speed_error = 0;
     }
     else {
-        set_direction_right(1);
+        pwm_new = this->acceleration_speed * SPEED_FF;
+        float speed_error = this->acceleration_speed - this->actual_speed;
+        speed_error = speed_error * KP_FWD;
+        angle_error = angle_error * KP_ROT;
+        this->cum_speed_error += speed_error + angle_error;
+        pwm_new += this->cum_speed_error;
     }
-    s_pwm_right = pwm;
-    analogWrite(RIGHT_PWM, pwm);
+    set_pwm((int)pwm_new);
+}
+
+float Motor::get_speed() {
+    return this->actual_speed;
+}
+
+int Motor::get_direction() {
+    return this->direction;
+}
+
+int Motor::get_pwm() {
+    return this->pwm;
 }
 
 void stop_motors() {
-    set_left_motor_pwm(0);
-    set_right_motor_pwm(0);
+    int l_impuls = motor_left.get_direction() * -1 * 30;
+    int r_impuls = motor_right.get_direction() * -1 * 30;
+    motor_left.set_speed(0);
+    motor_right.set_speed(0);
+    motor_left.set_pwm(l_impuls);
+    motor_right.set_pwm(r_impuls);
+    delay(50);
+    update_motor_controllers();
 }
 
-float position_controller() {
-    s_err_fwd += forward.increment() - robot_fwd_increment();
-    float diff = s_err_fwd - old_err_fwd;
-    old_err_fwd = s_err_fwd;
-    float output = s_err_fwd * KP_FWD + diff * KD_FWD;
-    return output;
-}
+void update_motor_controllers() {
+    update_encoders();
+    float increment_left = get_increment_left();
+    float increment_right = get_increment_right();
+    float angle_error = 0;
+    // if (g_steering_enabled) {
+    //     angle_error = mouse.get_angle() - get_robot_angle();
+    // }
+    motor_left.update_pwm(increment_left, angle_error);
+    motor_right.update_pwm(increment_right, -angle_error);
 
-float angle_controller(float steering_adjustment) {
-    s_err_rot += rotation.increment() - robot_rot_increment();
-    if (g_steering_enabled) {
-        s_err_rot += steering_adjustment;
+    if (dir_left != motor_left.get_direction()) {
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { dir_left = motor_left.get_direction(); }
     }
-    float diff = s_err_rot - old_err_rot;
-    old_err_rot = s_err_rot;
-    float output = s_err_rot * KP_ROT + diff * KD_ROT;
-    return output;
-}
-
-void update_motor_controllers(float steering_adjustment) {
-    float pos_output = position_controller();
-    float rot_output = angle_controller(steering_adjustment);
-
-    float left_output = 0;
-    float right_output = 0;
-
-    left_output += pos_output;
-    right_output += pos_output;
-
-    left_output -= rot_output;
-    right_output += rot_output;
-
-    float v_fwd = forward.speed();
-    float v_rot = rotation.speed();
-
-    float v_left = v_fwd - (PI / 180.0) * MOUSE_RADIUS * v_rot;
-    float v_right = v_fwd + (PI / 180.0) * MOUSE_RADIUS * v_rot;
-    left_output += SPEED_FF * v_left;
-    right_output += SPEED_FF * v_right;
-    var1 = left_output;
-    var2 = right_output;
-    int left_pwm = (int)left_output;
-    int right_pwm = (int)right_output;
-    if (l_motors_enabled) {
-        set_left_motor_pwm(left_pwm);
-        set_right_motor_pwm(right_pwm);
+    if (dir_right != motor_right.get_direction()) {
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { dir_right = motor_right.get_direction(); }
     }
+    print_motors();
 }

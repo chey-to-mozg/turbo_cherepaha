@@ -4,29 +4,24 @@
 #include "config.h"
 #include <util/atomic.h>
 
-extern int g_left_dir;
-extern int g_right_dir;
+extern int dir_left;
+extern int dir_right;
 
-extern volatile int g_count_left;
-extern volatile int g_count_right;
+extern int total_conut_left;
+extern int total_count_right;
 
-extern float s_total_left;
-extern float s_total_right;
+extern float distance_left;
+extern float distance_right;
 
-extern float s_distance_left;
-extern float s_distance_right;
-
-extern float g_distance;
-extern float g_angle;
-extern float g_increment;
-extern float g_angle_increment;
+extern float distance;
+extern float angle;
 
 void init_encoders();
 void reset_encoders();
-float robot_position();
-float robot_angle();
-float robot_fwd_increment();
-float robot_rot_increment();
+float get_robot_position();
+float get_robot_angle();
+float get_increment_left();
+float get_increment_right();
 
 void update_encoders();
 

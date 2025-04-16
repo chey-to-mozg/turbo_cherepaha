@@ -36,20 +36,7 @@ void init_serial() {
 //     if (SERIAL_ENABLE) {
 //         Serial.println("Connected");
 //     }
-// }
-
-void print_gyro() {
-    #if DEBUG_LOGGING == 1
-        Serial.print(" gyro delta ");
-        Serial.print(gyro_delta);
-        Serial.print(" gyro error ");
-        Serial.print(gyro_error);
-        Serial.print(" gyro angle ");
-        Serial.println(g_gyro_angle);
-    #else
-      delay(2);
-    #endif
-}   
+// } 
 
 
 void print_sensors() {
@@ -115,63 +102,35 @@ void print_sensors() {
 void print_motors() {
     if (DEBUG_AVAILABLE) {
         Serial.print(" < dist ");
-        Serial.print(s_distance_left);
+        Serial.print(distance_left);
         Serial.print(" enc ");
-        Serial.print(s_total_left);
+        Serial.print(total_conut_left);
+        Serial.print(" speed ");
+        Serial.print(motor_left.get_speed());
+        Serial.print(" pwm ");
+        Serial.print(motor_left.get_pwm());
 
         Serial.print(" > dist ");
-        Serial.print(s_distance_right);
+        Serial.print(distance_right);
         Serial.print(" enc ");
-        Serial.print(s_total_right);
+        Serial.print(total_count_right);
+        Serial.print(" speed ");
+        Serial.print(motor_right.get_speed());
+        Serial.print(" pwm ");
+        Serial.print(motor_right.get_pwm());
 
         Serial.print(" ^ dist ");
-        Serial.print(robot_position());
+        Serial.print(get_robot_position());
+        // Serial.print(" position ");
+        // Serial.print(mouse.get_position());
         Serial.print(" angle ");
-        Serial.print(robot_angle());
+        Serial.print(get_robot_angle());
 
-        Serial.print(" | pos err ");
-        Serial.print(s_err_fwd);
-        Serial.print(" | rot err ");
-        Serial.println(s_err_rot);
-    }
-    else
-      delay(2);
-}
-
-void print_debug() {
-    if (DEBUG_AVAILABLE) {
-        float debug1;
-        float debug2;
-        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-            debug1 = var1;
-            debug2 = var2;
-        }
-        Serial.print(debug1);
-        Serial.print(" ");
-        Serial.println(debug2);
-    }
-      delay(2);
-}
-
-void print_profile() {
-    if (DEBUG_AVAILABLE) {
-        Serial.print("Enc pos ");
-        Serial.print(robot_position());
-        Serial.print(" Enc ang ");
-        Serial.print(robot_angle());
-        Serial.print(" f pos ");
-        Serial.print(forward.position());
-        Serial.print(" f speed ");
-        Serial.print(forward.speed());
-        Serial.print(" r pos ");
-        Serial.print(rotation.position());
-        Serial.print(" r speed ");
-        Serial.print(rotation.speed());
-        Serial.print(" < pwm ");
-        Serial.print(s_pwm_left);
-        Serial.print(" > pwm ");
-        Serial.print(s_pwm_right);
-        Serial.println();
+        // Serial.print(" | pos err ");
+        // Serial.print(s_err_fwd);
+        // Serial.print(" | rot err ");
+        // Serial.println(s_err_rot);
+        Serial.println("");
     }
     else
       delay(2);
@@ -184,6 +143,6 @@ void report_bluetooth() {
 void report_serial() {
     print_sensors();
     print_motors();
-    print_profile();
-    print_debug();
+    // print_profile();
+    // print_debug();
 }

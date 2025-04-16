@@ -2,34 +2,40 @@
 #define MOTORS_H
 
 #include <Arduino.h>
+#include <limits.h>
 #include "config.h"
 #include "encoders.h"
 #include "sensors.h"
-#include "profile.h"
+#include "mouse.h"
 
-extern float s_err_fwd;
-extern float s_err_rot;
+class Motor {
+    public:
+        Motor(int dir_pin, int pwm_pin, int encoder_polarity);
+        void set_speed(float speed);
+        void set_pwm(int pwm);
+        void update_pwm(float distance_change, float angle_error);
+        float get_speed();
+        int get_direction();
+        int get_pwm();
+    private:
+        void set_direction(int direction); // 1 or -1
+        void accelerate();
+        int direction = 1;
+        int dir_pin;
+        int pwm_pin;
+        int polarity;
+        bool accelerating = true;
+        float speed = 0;
+        float actual_speed = 0;
+        float acceleration_speed = 0;
+        float cum_speed_error = 0;
+        int pwm = 0;
+        uint32_t last_update = 0;
+};
 
-extern float s_pwm_left;
-extern float s_pwm_right;
-
-void init_motors();
-void reset_motor_controllers();
-
-float position_controller();
-float angle_controller(float steering_adjustment);
-
-void update_motor_controllers(float target);
-
-void set_direction_left(int forward);
-void set_direction_right(int forward);
-
-void set_left_motor_pwm(int pwm);
-void set_right_motor_pwm(int pwm);
+extern Motor motor_left;
+extern Motor motor_right;
 
 void stop_motors();
-void disable_mototrs();
-void enable_mototrs();
-extern float var1;
-extern float var2;
+void update_motor_controllers();
 #endif

@@ -10,7 +10,7 @@ const bool SERIAL_ENABLE = true;
 //**** CONSTANTS ****//
 
 //** SERIAL PRINT **//
-#define DEBUG_LOGGING 0
+#define DEBUG_LOGGING 1
 #define DEBUG_LOGGING_WITH_MOTOTRS 0
 
 const bool DEBUG_AVAILABLE = DEBUG_LOGGING || DEBUG_LOGGING_WITH_MOTOTRS;
@@ -19,12 +19,12 @@ const bool DEBUG_AVAILABLE = DEBUG_LOGGING || DEBUG_LOGGING_WITH_MOTOTRS;
 
 const float ENCODER_PULSES = 3.0; // 3 up pulses per one cycle (total 12 pulses for 2 channels for up and down events)
 const float GEAR_RATIO = 100.0; // numbers from documentation. In real life need to correct it somehow
-const float WHEEL_DIAMETER = 34.4; // numbers from documentation.
+const float WHEEL_DIAMETER = 33.6; // numbers from documentation.
 
 const float MOUSE_RADIUS = 40.0; // left turn R = 40.455; // reduce in case of pere-turn, increase in case of nedo-turn
 
-const float SPEED_FF = (1.0 / 6.0); // tune to make average speed 
-const float ROTATION_BIAS = 0.0018; // to make robot go forward
+const float SPEED_FF = (80.0 / 400.0); // tune to make average speed 
+const float ROTATION_BIAS = -0.0018; // to make robot go forward
 
 const int ENCODER_LEFT_POLARITY = 1;
 const int ENCODER_RIGHT_POLARITY = 1;
@@ -33,11 +33,11 @@ const int MAX_PWM = 250;
 const int MIN_PWM = -250;
 
 //** PD  **/
-const float KP_FWD = 3.2;
-const float KD_FWD = 2.0;
+const float KP_FWD = 0;
+const float KD_FWD = 0;
 
-const float KP_ROT = 2.2;
-const float KD_ROT = 1.1;
+const float KP_ROT = 0.1;
+const float KD_ROT = 0;
 
 // controller constants for the steering controller
 const float KP_STEER = 1.0;
@@ -106,8 +106,10 @@ const uint8_t FRONT_LEFT_WALL_SENSOR    = A2;
 const uint8_t BUTTON = 10;
 
 // ** MOTORS ** //
-const uint8_t ENCOUNTER_RIGHT = 0;
-const uint8_t ENCOUNTER_LEFT = 1;
+const uint8_t ENCODER_LEFT_CLK = 0;
+const uint8_t ENCODER_LEFT_B = 14;
+const uint8_t ENCODER_RIGHT_CLK = 1;
+const uint8_t ENCODER_RIGHT_B = 15;
 
 const uint8_t LEFT_DIR = 8;
 const uint8_t RIGHT_DIR = 4;

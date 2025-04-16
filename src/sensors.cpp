@@ -22,14 +22,11 @@ bool g_steering_enabled;
 volatile float g_cross_track_error = 0;
 volatile float g_steering_adjustment = 0;
 
+uint32_t last_gyro_read_time = 0;
+
 const int MPU_addr=0x68;
 
-int16_t gyro_z_raw;
-float gyro_delta = 0;
-
-volatile float gyro_reference = 0;
-volatile float gyro_error = 0;
-volatile float g_gyro_angle = 0;
+float gyro_error = 0;
 
 int read_step = 0;
 
@@ -49,30 +46,22 @@ int read_row(uint8_t sensor) {
     return rawData / READS_PER_SENSOR;
 }
 
-void read_gyro() {
-    switch (read_step)
-    {
-        case 0:
-            Wire.beginTransmission(MPU_addr);
-            break;
-        case 1:
-            Wire.write(0x47); // gyro data at 0x43, to get acc set to 0x3b
-            break;
-        case 2:
-            Wire.endTransmission(false);
-            break;
-        case 3:
-            Wire.requestFrom(MPU_addr,14,true);
-            break;
-        case 4:
-            gyro_z_raw = Wire.read()<<8 | Wire.read();
-            gyro_delta = gyro_z_raw / 131.0 - gyro_error;
-            g_gyro_angle += gyro_delta * LOOP_INTERVAL * 5; // we get one value per 5 intervals
-            break;
-        default:
-            break;
-    }
-    read_step = (read_step + 1) % 5;
+void start_gyro_read() {
+    last_gyro_read_time = millis();
+}
+
+float read_gyro() {
+    unsigned long start_time = millis();
+    float time_delta = float(start_time - last_gyro_read_time) / 1000; // sec
+    last_gyro_read_time = start_time;
+    Wire.beginTransmission(MPU_addr);
+    Wire.write(0x47); // gyro data at 0x43, to get acc set to 0x3b
+    Wire.endTransmission(false);
+    Wire.requestFrom(MPU_addr,14,true);
+    int16_t gyro_z_raw = Wire.read()<<8 | Wire.read();
+    float gyro_delta = gyro_z_raw / 131.0 + gyro_error;
+    gyro_delta = gyro_delta * time_delta;
+    return gyro_delta;
 }
 
 void read_sensors() {
@@ -80,8 +69,6 @@ void read_sensors() {
     g_right_sensor_raw = read_row(RIGHT_WALL_SENSOR);
     g_front_sensor_raw_left = read_row(FRONT_LEFT_WALL_SENSOR);
     // g_front_sensor_raw_right = read_row(FRONT_RIGHT_WALL_SENSOR);
-    
-    // read_gyro();
 
     g_left_sensor = (int)(g_left_sensor_raw * LEFT_SCALE);
     g_right_sensor = (int)(g_right_sensor_raw * RIGHT_SCALE);
@@ -111,7 +98,6 @@ float calculate_steering_adjustment() {
     float error = 0;
     float left_error = NOMINAL_VALUE - g_left_sensor;
     float right_error = NOMINAL_VALUE - g_right_sensor;
-    float gyro_error = g_gyro_angle - gyro_reference;
 
     if (g_is_left_wall && g_is_right_wall) {
         error = left_error - right_error;
@@ -124,8 +110,6 @@ float calculate_steering_adjustment() {
     if (g_front_sensor > 100) {
         error = 0;
     }
-
-    error += gyro_error;
 
     g_cross_track_error = error;
 
@@ -157,6 +141,7 @@ void disable_steering() {
 }
 
 bool button_pressed() {
+    read_sensors();
     return g_left_button || g_right_button;
 }
 
@@ -164,25 +149,9 @@ void calibrate_gyro() {
     int num_reads = 100;
     float gyro_val = 0;
     for (int i = 0; i < num_reads; i++) {
-        gyro_val += gyro_delta;
-        delay(10); // wait for full read cycle
+        gyro_val += read_gyro();
     }
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        gyro_error = gyro_val / num_reads;
-        g_gyro_angle = 0;
-    }
-}
-
-void reset_gyro() {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        g_gyro_angle = gyro_reference;
-    }
-}
-
-void update_gyro_reference(float diff) {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        gyro_reference += diff;
-    }
+    gyro_error = gyro_val / num_reads;
 }
 
 void init_sesnors() {
@@ -198,6 +167,5 @@ void init_sesnors() {
     Wire.write(0x6B);
     Wire.write(0);
     Wire.endTransmission(true);
-
-    g_steering_enabled = false;
+    calibrate_gyro();
 }

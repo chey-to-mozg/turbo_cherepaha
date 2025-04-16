@@ -6,18 +6,12 @@
 #include "encoders.h"
 #include "sensors.h"
 #include "reporter.h"
-#include "profile.h"
 #include "maze.h"
 
-#define SEARCH_ACCELERATION 1500
-#define SPIN_TURN_ACCELERATION 1000
-#define SPIN_TURN_SMOOTH_ACCELERATION 1500
-#define SPEEDMAX_EXPLORE 150
-#define SPEEDMAX_PRETURN 100
-#define SPEEDMAX_EXPLORE_NORMAL 200
-#define SPEEDMAX_PRETURN_NORMAL 100
+#define SPEEDMAX_EXPLORE 200
+#define SPEEDMAX_PRETURN 200
 #define SPEEDMAX_SMOOTH_TURN 90
-#define SPEEDMAX_SPIN_TURN 400
+#define SPEEDMAX_SPIN_TURN 150
 
 class Mouse {
     public:
@@ -29,7 +23,7 @@ class Mouse {
         void finish_ping(int counts = 0);
         void print_info();
         uint8_t stop();
-        void move(float distance, float max_speed, bool check_wall = true);
+        void move(float distance, float max_speed, bool check_wall = false);
         void move_from_wall();
         void move_to_center();
         void wait_until_position(float position);
@@ -44,7 +38,10 @@ class Mouse {
         bool run_smooth(bool to_finish = true, bool check_walls = true); // front sensor should be calibrated properly
         bool run_normal(bool to_finish = true);
         void reset_mouse();
+        float get_angle();
     private:
+        void move_angle(float turn_angle, float speed);
+        void turn(float angle);
         void turn_after_move(float angle);
         void calibrate_with_front_wall();
 
@@ -54,6 +51,8 @@ class Mouse {
         bool left_wall;
         bool front_wall;
         bool right_wall;
+
+        float angle = 0;
 };
 
 extern Mouse mouse;

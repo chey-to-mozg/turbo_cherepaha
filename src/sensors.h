@@ -24,9 +24,7 @@ extern volatile bool g_is_front_wall;
 extern volatile bool g_left_button;
 extern volatile bool g_right_button;
 
-extern volatile float g_gyro_angle;
-extern volatile float gyro_error;
-extern float gyro_delta;
+extern float gyro_error;
 
 
 /*** steering variables ***/
@@ -49,6 +47,8 @@ void update_gyro_reference(float diff);
 
 int get_front_sensor();
 
+void start_gyro_read();
+float read_gyro();
 void reset_gyro();
 void calibrate_gyro();
 
