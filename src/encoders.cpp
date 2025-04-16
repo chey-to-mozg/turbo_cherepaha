@@ -66,11 +66,13 @@ void reset_encoders() {
 }
 
 void init_encoders() {
-    pinMode(ENCOUNTER_RIGHT, INPUT);
-    pinMode(ENCOUNTER_LEFT, INPUT);
+    pinMode(ENCODER_LEFT_CLK, INPUT);
+    pinMode(ENCODER_LEFT_B, INPUT);
+    pinMode(ENCODER_RIGHT_CLK, INPUT);
+    pinMode(ENCODER_RIGHT_B, INPUT);
 
-    attachInterrupt(digitalPinToInterrupt(ENCOUNTER_RIGHT), right_increment, FALLING);
-    attachInterrupt(digitalPinToInterrupt(ENCOUNTER_LEFT), left_increment, FALLING);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_LEFT_CLK), right_increment, FALLING);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_RIGHT_CLK), left_increment, FALLING);
 
     reset_encoders();
 }
