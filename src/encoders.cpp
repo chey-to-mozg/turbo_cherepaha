@@ -25,25 +25,21 @@ float distance;
 float angle;
 
 void left_increment() {
-  static bool oldA = false;
-  static bool oldB = false;
-  bool newB = digitalRead(ENCODER_LEFT_B);
-  bool newA = digitalRead(ENCODER_LEFT_CLK) ^ newB;
-  int delta = ENCODER_LEFT_POLARITY * ((oldA ^ newB) - (newA ^ oldB));
-  count_left += delta;
-  oldA = newA;
-  oldB = newB;
+  if(digitalRead(ENCODER_LEFT_B)) {
+    count_left += 1;
+  }
+  else {
+    count_left -= 1;
+  }
 }
 
 void right_increment() {
-  static bool oldA = false;
-  static bool oldB = false;
-  bool newB = digitalRead(ENCODER_RIGHT_B);
-  bool newA = digitalRead(ENCODER_RIGHT_CLK) ^ newB;
-  int delta = ENCODER_RIGHT_POLARITY * ((oldA ^ newB) - (newA ^ oldB));
-  count_right += delta;
-  oldA = newA;
-  oldB = newB;
+  if(digitalRead(ENCODER_RIGHT_B)) {
+    count_right += 1;
+  }
+  else {
+    count_right -= 1;
+  }
 }
 
 void reset_encoders() {
@@ -71,8 +67,8 @@ void init_encoders() {
     pinMode(ENCODER_RIGHT_CLK, INPUT);
     pinMode(ENCODER_RIGHT_B, INPUT);
 
-    attachInterrupt(digitalPinToInterrupt(ENCODER_LEFT_CLK), right_increment, FALLING);
-    attachInterrupt(digitalPinToInterrupt(ENCODER_RIGHT_CLK), left_increment, FALLING);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_LEFT_CLK), left_increment, FALLING);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_RIGHT_CLK), right_increment, FALLING);
 
     reset_encoders();
 }

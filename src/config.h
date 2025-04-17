@@ -106,10 +106,10 @@ const uint8_t FRONT_LEFT_WALL_SENSOR    = A2;
 const uint8_t BUTTON = 10;
 
 // ** MOTORS ** //
-const uint8_t ENCODER_LEFT_CLK = 0;
-const uint8_t ENCODER_LEFT_B = 14;
-const uint8_t ENCODER_RIGHT_CLK = 1;
-const uint8_t ENCODER_RIGHT_B = 15;
+const uint8_t ENCODER_LEFT_CLK = 1;
+const uint8_t ENCODER_LEFT_B = 15;
+const uint8_t ENCODER_RIGHT_CLK = 0;
+const uint8_t ENCODER_RIGHT_B = 14;
 
 const uint8_t LEFT_DIR = 8;
 const uint8_t RIGHT_DIR = 4;
