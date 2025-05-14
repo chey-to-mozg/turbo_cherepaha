@@ -8,31 +8,31 @@
 #include <util/atomic.h>
 
 
-extern volatile int g_left_sensor_raw;
-extern volatile int g_right_sensor_raw;
-extern volatile int g_front_sensor_raw_left;
-extern volatile int g_front_sensor_raw_right;
+extern int g_left_sensor_raw;
+extern int g_right_sensor_raw;
+extern int g_front_sensor_raw_left;
+extern int g_front_sensor_raw_right;
 
-extern volatile int g_left_sensor;
-extern volatile int g_right_sensor;
-extern volatile int g_front_sensor;
+extern int g_left_sensor;
+extern int g_right_sensor;
+extern int g_front_sensor;
 
-extern volatile bool g_is_left_wall;
-extern volatile bool g_is_right_wall;
-extern volatile bool g_is_front_wall;
+extern bool g_is_left_wall;
+extern bool g_is_right_wall;
+extern bool g_is_front_wall;
 
-extern volatile bool g_left_button;
-extern volatile bool g_right_button;
+extern bool g_left_button;
+extern bool g_right_button;
 
 extern float gyro_error;
 
 
 /*** steering variables ***/
 extern bool g_steering_enabled;
-extern volatile float g_cross_track_error;
-extern volatile float g_steering_adjustment;
+extern float g_cross_track_error;
+extern float g_steering_adjustment;
 
-void read_sensors();
+void update_sensors();
 
 float calculate_steering_adjustment();
 

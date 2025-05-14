@@ -4,9 +4,6 @@ const float MM_PER_COUNT_LEFT = (1 - ROTATION_BIAS) * PI * WHEEL_DIAMETER / (ENC
 const float MM_PER_COUNT_RIGHT = (1 + ROTATION_BIAS) * PI * WHEEL_DIAMETER / (ENCODER_PULSES * GEAR_RATIO);
 const float DEG_PER_MM_DIFFERENCE = (180.0 / (2 * MOUSE_RADIUS * PI));
 
-int dir_left;
-int dir_right;
-
 volatile int count_left;
 volatile int count_right;
 
@@ -26,26 +23,24 @@ float angle;
 
 void left_increment() {
   if(digitalRead(ENCODER_LEFT_B)) {
-    count_left += 1;
+    count_left += ENCODER_LEFT_POLARITY;
   }
   else {
-    count_left -= 1;
+    count_left -= ENCODER_LEFT_POLARITY;
   }
 }
 
 void right_increment() {
   if(digitalRead(ENCODER_RIGHT_B)) {
-    count_right += 1;
+    count_right += ENCODER_RIGHT_POLARITY;
   }
   else {
-    count_right -= 1;
+    count_right -= ENCODER_RIGHT_POLARITY;
   }
 }
 
 void reset_encoders() {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      dir_left = 1;
-      dir_right = 1;
       count_left = 0;
       count_right = 0;
       total_conut_left = 0;

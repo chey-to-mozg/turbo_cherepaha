@@ -4,9 +4,6 @@
 #include "config.h"
 #include <util/atomic.h>
 
-extern int dir_left;
-extern int dir_right;
-
 extern int total_conut_left;
 extern int total_count_right;
 

@@ -54,6 +54,7 @@ class Maze {
         uint8_t get_direction();
         Pair get_finish();
         Pair get_start();
+        bool is_wall(uint8_t mouse_dir_wall);
         void set_position(Pair position);
         void set_direction(uint8_t dir);
         void save_maze(); // save only walls and floodfill after load
@@ -68,7 +69,7 @@ class Maze {
         Pair start_position = {15, 0};
         Pair mouse_position = start_position;
         uint8_t mouse_direction = UP;
-        Pair target = {13, 1};
+        Pair target = {14, 2};
         char path[MAZE_WIDTH * MAZE_WIDTH];
         uint8_t path_len = 0;
         uint8_t current_path_idx = 0;

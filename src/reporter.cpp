@@ -123,8 +123,10 @@ void print_motors() {
         Serial.print(get_robot_position());
         // Serial.print(" position ");
         // Serial.print(mouse.get_position());
-        Serial.print(" angle ");
+        Serial.print(" enc angle ");
         Serial.print(get_robot_angle());
+        Serial.print(" mouse angle ");
+        Serial.print(mouse.get_angle());
 
         // Serial.print(" | pos err ");
         // Serial.print(s_err_fwd);
@@ -132,8 +134,9 @@ void print_motors() {
         // Serial.println(s_err_rot);
         Serial.println("");
     }
-    else
-      delay(2);
+    else {
+        delay(2);
+    }
 }
 
 void report_bluetooth() {

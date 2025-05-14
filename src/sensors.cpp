@@ -1,26 +1,26 @@
 #include "sensors.h"
 
-volatile int g_left_sensor_raw;
-volatile int g_right_sensor_raw;
-volatile int g_front_sensor_raw_left;
-volatile int g_front_sensor_raw_right;
+int g_left_sensor_raw;
+int g_right_sensor_raw;
+int g_front_sensor_raw_left;
+int g_front_sensor_raw_right;
 
-volatile int g_left_sensor;
-volatile int g_right_sensor;
-volatile int g_front_sensor;
+int g_left_sensor;
+int g_right_sensor;
+int g_front_sensor;
 
-volatile bool g_is_left_wall;
-volatile bool g_is_right_wall;
-volatile bool g_is_front_wall;
+bool g_is_left_wall;
+bool g_is_right_wall;
+bool g_is_front_wall;
 
-volatile bool g_left_button;
-volatile bool g_right_button;
+bool g_left_button;
+bool g_right_button;
 
 static float last_steering_error = 0;
 
 bool g_steering_enabled;
-volatile float g_cross_track_error = 0;
-volatile float g_steering_adjustment = 0;
+float g_cross_track_error = 0;
+float g_steering_adjustment = 0;
 
 uint32_t last_gyro_read_time = 0;
 
@@ -39,7 +39,7 @@ int get_front_sensor() {
 }
 
 int read_row(uint8_t sensor) {
-    int rawData = 0;
+    float rawData = 0;
     for (int i = 0; i < READS_PER_SENSOR; i++) {
         rawData += analogRead(sensor);
     }
@@ -64,7 +64,7 @@ float read_gyro() {
     return gyro_delta;
 }
 
-void read_sensors() {
+void update_sensors() {
     g_left_sensor_raw = read_row(LEFT_WALL_SENSOR);
     g_right_sensor_raw = read_row(RIGHT_WALL_SENSOR);
     g_front_sensor_raw_left = read_row(FRONT_LEFT_WALL_SENSOR);
@@ -96,8 +96,8 @@ void read_sensors() {
 
 float calculate_steering_adjustment() {
     float error = 0;
-    float left_error = NOMINAL_VALUE - g_left_sensor;
-    float right_error = NOMINAL_VALUE - g_right_sensor;
+    float left_error = g_left_sensor - NOMINAL_VALUE;
+    float right_error = g_right_sensor - NOMINAL_VALUE;
 
     if (g_is_left_wall && g_is_right_wall) {
         error = left_error - right_error;
@@ -107,16 +107,16 @@ float calculate_steering_adjustment() {
         error = -2.0 * right_error;
     }
     // Check value 100
-    if (g_front_sensor > 100) {
-        error = 0;
-    }
+    // if (g_front_sensor > 100) {
+    //     error = 0;
+    // }
 
     g_cross_track_error = error;
 
     // always calculate the adjustment for testing. It may not get used.
     float pTerm = KP_STEER * error;
-    float dTerm = KD_STEER * (error - last_steering_error) ;
-    float adjustment = (pTerm + dTerm) * LOOP_INTERVAL;
+    float dTerm = KD_STEER * (error - last_steering_error);
+    float adjustment = (pTerm + dTerm);
     // TODO: are these limits appropriate, or even needed?
     // adjustment = constrain(adjustment, -STEERING_ADJUST_LIMIT, STEERING_ADJUST_LIMIT);
     last_steering_error = error;
@@ -141,7 +141,7 @@ void disable_steering() {
 }
 
 bool button_pressed() {
-    read_sensors();
+    update_sensors();
     return g_left_button || g_right_button;
 }
 
@@ -161,6 +161,9 @@ void init_sesnors() {
     // pinMode(FRONT_RIGHT_WALL_SENSOR, INPUT);
 
     pinMode(BUTTON, INPUT_PULLUP);
+
+    g_left_button = false;
+    g_right_button = false;
 
     Wire.begin();
     Wire.beginTransmission(MPU_addr);

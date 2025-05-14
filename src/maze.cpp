@@ -96,6 +96,11 @@ void Maze::set_direction(uint8_t dir) {
     mouse_direction = dir;
 }
 
+bool Maze::is_wall(uint8_t mouse_dir_wall) {
+    uint8_t wall_idx = (mouse_dir_wall + mouse_direction) % 4;
+    return check_wall(mouse_position, WALLS[wall_idx]);
+}
+
 bool Maze::check_wall(Pair position, uint8_t wall) {
     return (walls[position.y][position.x] & wall) == wall;
 }
@@ -230,7 +235,7 @@ void Maze::load_maze() {
 }
 
 void Maze::print_path() {
-    if (!DEBUG_AVAILABLE) {
+    if (!DEBUG_MAZE) {
         return;
     }
     for (int i = current_path_idx; i < path_len; i++) {
@@ -240,7 +245,7 @@ void Maze::print_path() {
 }
 
 void Maze::print_maze() {
-    if (!DEBUG_AVAILABLE) {
+    if (!(DEBUG_MAZE || DEBUG_LOGGING)) {
         return;
     }
     
