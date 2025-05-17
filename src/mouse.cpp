@@ -2,14 +2,35 @@
 
 Mouse mouse;
 
+float MOUSE_CONFIG[2][11] = {
+// max_speed |  angle_offset_left | pre_turn_ofset_left |   after_turn_offset_left | pre_turn_reference_left |      angle_offset_right |    pre_turn_ofset_right |  after_turn_offset_right |   pre_turn_reference_right |  front_reference |   turn_ratio
+    {300.0,     0,                  15.0,                   20.0,                    80.0,                          0,                      5.0,                    30.0,                       80.0,                       130.0,              0.33},
+    {500.0,     0,                  10.0,                   10.0,                    87.0,                          0,                      5.0,                    20.0,                       90.0,                       130.0,              0.3},
+};
+
 Mouse::Mouse() {
     init_leds();
     disable_steering();
     reset_encoders();
+    max_speed = SPEEDMAX_EXPLORE;
 }
 
 float Mouse::get_angle() {
     return angle;
+}
+
+void Mouse::set_config(int config_id) {
+    this->max_speed = MOUSE_CONFIG[config_id][0];
+    this->angle_offset_left = MOUSE_CONFIG[config_id][1];
+    this->pre_turn_ofset_left = MOUSE_CONFIG[config_id][2];
+    this->after_turn_offset_left = MOUSE_CONFIG[config_id][3];
+    this->pre_turn_reference_left = MOUSE_CONFIG[config_id][4];
+    this->angle_offset_right = MOUSE_CONFIG[config_id][5];
+    this->pre_turn_ofset_right = MOUSE_CONFIG[config_id][6];
+    this->after_turn_offset_right = MOUSE_CONFIG[config_id][7];
+    this->pre_turn_reference_right = MOUSE_CONFIG[config_id][8];
+    this->front_reference = MOUSE_CONFIG[config_id][9];
+    this->turn_ratio = MOUSE_CONFIG[config_id][10];
 }
 
 void Mouse::stop() {
@@ -134,6 +155,7 @@ uint8_t Mouse::wait_to_start() {
     }
     turn_all_leds();
     delay(2000);
+    update_motor_controllers();
     reset_leds();
 
     return mode;
@@ -143,6 +165,7 @@ void Mouse::maze_debug() {
     enable_steering();
     while(true) {
         update_sensors();
+        print_sensors();
         if (g_left_button) {
             break;
         }
@@ -165,6 +188,8 @@ void Mouse::error_ping() {
             reset_leds();
         }
         print_info();
+        print_sensors();
+        print_motors();
         delay(500);
         signal = !signal;
     }
@@ -188,23 +213,23 @@ void Mouse::move_from_wall() {
     disable_steering();
     motor_left.reset_motor();
     motor_right.reset_motor();
-    move(HALF_CELL - ROBOT_OFFSET, SPEEDMAX_EXPLORE);
+    move(HALF_CELL - ROBOT_OFFSET, max_speed);
 }
 
 void Mouse::move_half_cell(bool untill_wall) {
     enable_steering();
-    int dist_to_wall = untill_wall ? FRONT_REFERENCE : 0;
-    move(HALF_CELL, SPEEDMAX_EXPLORE, dist_to_wall);
+    int dist_to_wall = untill_wall ? this->front_reference : 0;
+    move(HALF_CELL, max_speed, dist_to_wall);
 }
 
 void Mouse::move_cell(bool untill_wall) {
     enable_steering();
-    int dist_to_wall = untill_wall ? FRONT_REFERENCE : 0;
-    move(CELL, SPEEDMAX_EXPLORE, dist_to_wall);
+    int dist_to_wall = untill_wall ? this->front_reference : 0;
+    move(CELL, max_speed, dist_to_wall);
 }
 
 void Mouse::move_backward() {
-    move(-BACK_WALL_TO_CENTER, SPEEDMAX_EXPLORE / 2);
+    move(-BACK_WALL_TO_CENTER, max_speed / 2);
 }
 
 void Mouse::turn_90_left() {
@@ -217,35 +242,34 @@ void Mouse::turn_90_right() {
 
 void Mouse::turn_90_left_smooth() {
     float turn_angle = 90;
-    float angle_offset = -5;
-    float pre_turn_ofset = 15;
-    float after_turn_offset = 20;
     disable_steering();
     
-    move(pre_turn_ofset, SPEEDMAX_EXPLORE, PRE_TURN_REFERENCE_LEFT);
-
-    float left_speed = TURN_SPEED_RATIO * SPEEDMAX_SMOOTH_TURN;
-    float right_speed = SPEEDMAX_SMOOTH_TURN;
+    move(this->pre_turn_ofset_left, this->max_speed, this->pre_turn_reference_left);
+    // int saved_sensor = g_front_sensor;
+    // stop();
+    // while (1) {
+    //     Serial.println(saved_sensor);
+    //     delay(1000);
+    // }
+    float left_speed = this->turn_ratio * this->max_speed;
+    float right_speed = this->max_speed;
     motor_left.set_speed(left_speed);
     motor_right.set_speed(right_speed);
     // float cur_angle = this->angle;
     // start_gyro_read();
-    while (get_robot_angle() < this->angle + turn_angle + angle_offset) {
+    while (get_robot_angle() < this->angle + turn_angle + this->angle_offset_left) {
         update_motor_controllers();
         // cur_angle += read_gyro();
     }
     this->angle += turn_angle;
-    move(after_turn_offset, SPEEDMAX_EXPLORE);
+    move(this->after_turn_offset_left, this->max_speed);
 }
 
 void Mouse::turn_90_right_smooth() {
     float turn_angle = -90;
-    float angle_offset = 0;
-    float pre_turn_ofset = 5;
-    float after_turn_offset = 30;
     disable_steering();
     
-    move(pre_turn_ofset, SPEEDMAX_EXPLORE, PRE_TURN_REFERENCE_RIGHT);
+    move(this->pre_turn_ofset_right, this->max_speed, this->pre_turn_reference_right);
     // int saved_sensor = g_front_sensor;
     // stop();
     // while (1) {
@@ -253,20 +277,20 @@ void Mouse::turn_90_right_smooth() {
     //     delay(1000);
     // }
     
-    float left_speed = SPEEDMAX_SMOOTH_TURN;
-    float right_speed = TURN_SPEED_RATIO * SPEEDMAX_SMOOTH_TURN;
+    float left_speed = this->max_speed;
+    float right_speed = this->turn_ratio * this->max_speed;
     motor_left.set_speed(left_speed);
     motor_right.set_speed(right_speed);
     // float cur_angle = this->angle;
     // start_gyro_read();
-    while (get_robot_angle() > this->angle + turn_angle + angle_offset) {
+    while (get_robot_angle() > this->angle + turn_angle + this->angle_offset_right) {
         update_motor_controllers();
         // cur_angle += read_gyro();
         print_motors();
     }
     this->angle += turn_angle;
     
-    move(after_turn_offset, SPEEDMAX_EXPLORE);
+    move(this->after_turn_offset_right, SPEEDMAX_EXPLORE);
 }
 
 void Mouse::turn_around() {
@@ -451,12 +475,98 @@ bool Mouse::explore(bool to_finish) {
         }
            
     }
-    disable_steering();
-    stop_motors();
-    disable_motors();
+    stop();
     return path_exists;
 }
 
-void Mouse::run_short() {
+bool Mouse::run_short() {
+    Pair target = maze.get_finish();
+    maze.floodfill(target);
+    bool path_exists = maze.find_path(maze.get_position());
+    if (!path_exists) {
+        return false;
+    }
+    maze.print_maze();
+    maze.print_path();
+    enable_motors();
+    char next_path;
+    for (int i = 0; i < maze.get_path_len(); i++) {
+        if (button_pressed()) {
+            return false;
+        }
+        
+        next_path = maze.get_next_move();
+
+        if (is_start) {
+            if (!DEBUG_MAZE) {
+                move_from_wall();
+            }
+            is_start = false;
+            is_center = true;
+        }
+
+        switch (next_path)
+        {
+            case 'F':
+                if (DEBUG_MAZE) {
+                    Serial.println("Forward");
+                }
+                else {
+                    if (is_center) {
+                        move_half_cell();
+                        is_center = false;
+                    }
+                    else {
+                        move_cell();
+                    }
+                }  
+                maze.update_position();
+                break;
+            case 'R':
+                if (DEBUG_MAZE) {
+                    Serial.println("Right and forward");
+                }
+                else {
+                    turn_90_right_smooth();
+                }
+                maze.get_next_move(true); // after turn command it is forward command, so we should pop it
+                i++;
+                maze.update_direction(RIGHT);
+                maze.update_position();
+                break;
+            case 'L':
+                if (DEBUG_MAZE) {
+                    Serial.println("Left and forward");
+                }
+                else {
+                    turn_90_left_smooth();
+                }
+                maze.get_next_move(true); // after turn command it is forward command, so we should pop it
+                i++;
+                maze.update_direction(LEFT);
+                maze.update_position();
+                // float cur_angle = get_robot_angle();
+                // stop();
+                // while(1) {
+                //     Serial.println(cur_angle);
+                //     delay(1000);
+                // }
+                break;
+            default:
+                // shouldnt exist
+                stop();
+                return false;
+        }
+    }
+
+    if (path_exists) {
+        set_config(0);
+        if (!DEBUG_MAZE) {
+            move_half_cell(true);
+            is_center = true;
+        }
+    }
     
+    stop();
+    return path_exists;
 }

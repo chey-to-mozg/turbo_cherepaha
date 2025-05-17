@@ -60,7 +60,7 @@ void Motor::accelerate() {
             this->acceleration_speed = this->speed;
         }
         else {
-            int speed_delta = 4;
+            int speed_delta = 5;
             if (this->speed < 0) {
                 speed_delta *= -1;
             }

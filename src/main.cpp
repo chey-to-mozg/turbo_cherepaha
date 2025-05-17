@@ -26,11 +26,16 @@ void test_run() {
   //   update_motor_controllers();
   // }
   // check_pwm_control();
+  // while(true) {
+  //   print_sensors();
+  //   delay(1000);
+  // }
+  mouse.set_config(1);
   enable_motors();
   mouse.move_from_wall();
   mouse.move_half_cell();
-  mouse.turn_90_right_smooth();
-  // mouse.turn_90_left_smooth();
+  // mouse.turn_90_right_smooth();
+  mouse.turn_90_left_smooth();
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
@@ -65,10 +70,15 @@ void test_loop() {
 void main_loop() {
   while (1) {
     mode = mouse.wait_to_start();
+    // while(true) {
+    //   print_sensors();
+    //   delay(1000);
+    // }
 
     if (mode == 0){
       //** NORMAL RUN **//
       mouse.reset_mouse();
+      mouse.set_config(0);
       maze.reset_maze();
       
       bool finished = mouse.explore();
@@ -86,6 +96,7 @@ void main_loop() {
       //** NORMAL RUN WITH MAP SAVING **/
 
       mouse.reset_mouse();
+      mouse.set_config(0);
       maze.reset_maze();
 
       bool finished = mouse.explore();
@@ -105,6 +116,7 @@ void main_loop() {
       //** NORMAL RUN WITH MAP LOADING **/
 
       mouse.reset_mouse();
+      mouse.set_config(1);
       maze.reset_maze();
 
       maze.load_maze();
@@ -113,12 +125,10 @@ void main_loop() {
       bool finished = mouse.run_short();
       if (finished) {
         mouse.finish_ping();
-        finished = mouse.explore(false);
-      }
-
-      if (!finished) {
+        mouse.set_config(0);
+        mouse.explore(false);
+      } else {
         mouse.error_ping();
-        mouse.print_info();
       }
     }
     // else if (mode == 3)
@@ -200,7 +210,6 @@ void main_loop() {
 }
 
 void loop() {
-  
-
-  
+  // test_loop();
+  main_loop();
 }

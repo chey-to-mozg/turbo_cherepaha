@@ -23,10 +23,8 @@ const float WHEEL_DIAMETER = 34.0; // numbers from documentation.
 
 const float MOUSE_RADIUS = 38.0; // left turn R = 40.455; // reduce in case of pere-turn, increase in case of nedo-turn
 
-const float TURN_SPEED_RATIO = 33.0 / 100;
-
 const float SPEED_FF = 0.25; // tune to make average speed
-const float ROTATION_BIAS = -0.01; // to make robot go forward
+const float ROTATION_BIAS = -0.004; // to make robot go forward:  + to turn right, - to turn left
 
 const int MOTOR_LEFT_POLARITY = 1;
 const int MOTOR_RIGHT_POLARITY = 1;
@@ -62,9 +60,9 @@ enum Direction: uint8_t {
 };
 
 //** SENSORS **/
-const int LEFT_CALIBRATION = 170; // test when robot centered and no front wall
-const int RIGHT_CALIBRATION = 187; // test when robot centered and no front wall
-const int FRONT_CALIBRATION_LEFT = 202; // test when robot with back walls
+const int LEFT_CALIBRATION = 158; // test when robot centered and no front wall
+const int RIGHT_CALIBRATION = 177; // test when robot centered and no front wall
+const int FRONT_CALIBRATION_LEFT = 197; // test when robot with back walls
 // const int FRONT_CALIBRATION_RIGHT = 195; // test when robot with back walls
 
 const int NOMINAL_VALUE = 100; // sensors should give 100 in normal position
@@ -79,11 +77,6 @@ const int READS_PER_SENSOR = 1;
 const int LEFT_THRESHOLD = 70;
 const int RIGHT_THRESHOLD = 70;
 const int FRONT_THRESHOLD = 70;
-
-// value to decide if we in cell center
-const int FRONT_REFERENCE = 130;
-const int PRE_TURN_REFERENCE_RIGHT = 81;
-const int PRE_TURN_REFERENCE_LEFT = 84;
 
 // button treshold
 const int LEFT_BUTTON_THRESHOLD = 200;

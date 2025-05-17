@@ -9,8 +9,11 @@
 #include "maze.h"
 
 #define SPEEDMAX_EXPLORE 300
-#define SPEEDMAX_SMOOTH_TURN 300
+#define SPEEDMAX_FAST 500
 #define SPEEDMAX_SPIN_TURN 150
+
+
+extern float MOUSE_CONFIG[2][11];
 
 class Mouse {
     public:
@@ -34,9 +37,10 @@ class Mouse {
         void move_backward();
         void update_walls();
         bool explore(bool to_finish = true);
-        void run_short();
+        bool run_short();
         void reset_mouse();
         float get_angle();
+        void set_config(int config_id);
     private:
         void move_angle(float turn_angle, float speed);
         void turn(float angle);
@@ -44,6 +48,17 @@ class Mouse {
         bool is_start = true;
         bool is_center = false;
 
+        float max_speed = 0;
+        float angle_offset_left = 0;
+        float angle_offset_right = 0;
+        float pre_turn_ofset_left = 0;
+        float pre_turn_ofset_right = 0;
+        float after_turn_offset_left = 0;
+        float after_turn_offset_right = 0;
+        float pre_turn_reference_left = 0;
+        float pre_turn_reference_right = 0;
+        float front_reference = 0;
+        float turn_ratio = 0;
         float angle = 0;
 };
 
