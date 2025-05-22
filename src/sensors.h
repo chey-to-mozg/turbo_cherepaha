@@ -6,6 +6,7 @@
 #include <config.h>
 #include "leds.h"
 #include <util/atomic.h>
+#include <iarduino_VCC.h>
 
 
 extern int g_left_sensor_raw;

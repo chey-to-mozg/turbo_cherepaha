@@ -37,6 +37,7 @@ class Mouse {
         void move_backward();
         void update_walls();
         bool explore(bool to_finish = true);
+        bool explore_90(bool to_finish = true);
         bool run_short();
         void reset_mouse();
         float get_angle();

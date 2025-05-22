@@ -43,8 +43,8 @@ const float KP_ROT = 0.0;
 const float KD_ROT = 0.0;
 
 // controller constants for the steering controller
-const float KP_STEER = 3.0;
-const float KD_STEER = 0.0;
+const float KP_STEER = 2.0;
+const float KD_STEER = 2.0;
 
 //** MAZE **/
 
@@ -60,9 +60,10 @@ enum Direction: uint8_t {
 };
 
 //** SENSORS **/
-const int LEFT_CALIBRATION = 158; // test when robot centered and no front wall
-const int RIGHT_CALIBRATION = 177; // test when robot centered and no front wall
-const int FRONT_CALIBRATION_LEFT = 197; // test when robot with back walls
+const float REF_VCC = 8.4; // reference battary level for sensor readaings
+const int LEFT_CALIBRATION = 144; // test when robot centered and no front wall
+const int RIGHT_CALIBRATION = 144; // test when robot centered and no front wall
+const int FRONT_CALIBRATION_LEFT = 175; // test when robot with back walls
 // const int FRONT_CALIBRATION_RIGHT = 195; // test when robot with back walls
 
 const int NOMINAL_VALUE = 100; // sensors should give 100 in normal position
@@ -76,7 +77,7 @@ const int READS_PER_SENSOR = 1;
 // values to detect walls 70
 const int LEFT_THRESHOLD = 70;
 const int RIGHT_THRESHOLD = 70;
-const int FRONT_THRESHOLD = 70;
+const int FRONT_THRESHOLD = 75;
 
 // button treshold
 const int LEFT_BUTTON_THRESHOLD = 200;

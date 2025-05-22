@@ -28,13 +28,13 @@ const int MPU_addr=0x68;
 
 float gyro_error = 0;
 
+float vcc_coef = 0.0;
+
 int read_step = 0;
 
 int get_front_sensor() {
     int value;
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        value = g_front_sensor;
-    }
+    value = g_front_sensor;
     return value;
 }
 
@@ -43,7 +43,7 @@ int read_row(uint8_t sensor) {
     for (int i = 0; i < READS_PER_SENSOR; i++) {
         rawData += analogRead(sensor);
     }
-    return rawData / READS_PER_SENSOR;
+    return vcc_coef * rawData / READS_PER_SENSOR;
 }
 
 void start_gyro_read() {
@@ -165,10 +165,12 @@ void init_sesnors() {
     g_left_button = false;
     g_right_button = false;
 
-    Wire.begin();
-    Wire.beginTransmission(MPU_addr);
-    Wire.write(0x6B);
-    Wire.write(0);
-    Wire.endTransmission(true);
-    calibrate_gyro();
+    vcc_coef = analogRead_VCC() / REF_VCC;
+
+    // Wire.begin();
+    // Wire.beginTransmission(MPU_addr);
+    // Wire.write(0x6B);
+    // Wire.write(0);
+    // Wire.endTransmission(true);
+    // calibrate_gyro();
 }

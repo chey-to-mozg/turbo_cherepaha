@@ -30,12 +30,12 @@ void test_run() {
   //   print_sensors();
   //   delay(1000);
   // }
-  mouse.set_config(1);
+  mouse.set_config(0);
   enable_motors();
   mouse.move_from_wall();
   mouse.move_half_cell();
   // mouse.turn_90_right_smooth();
-  mouse.turn_90_left_smooth();
+  // mouse.turn_90_left_smooth();
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
@@ -70,7 +70,10 @@ void test_loop() {
 void main_loop() {
   while (1) {
     mode = mouse.wait_to_start();
+    // float vcc = analogRead_VCC();
     // while(true) {
+    //   Serial.println(vcc);
+    //   Serial.println(analogRead_VCC());
     //   print_sensors();
     //   delay(1000);
     // }
@@ -79,7 +82,6 @@ void main_loop() {
       //** NORMAL RUN **//
       mouse.reset_mouse();
       mouse.set_config(0);
-      maze.reset_maze();
       
       bool finished = mouse.explore();
       if (finished) {
@@ -97,7 +99,6 @@ void main_loop() {
 
       mouse.reset_mouse();
       mouse.set_config(0);
-      maze.reset_maze();
 
       bool finished = mouse.explore();
       if (finished) {
@@ -113,7 +114,7 @@ void main_loop() {
     }
     else if (mode == 2)
     {
-      //** NORMAL RUN WITH MAP LOADING **/
+      //** FAST RUN WITH MAP LOADING **/
 
       mouse.reset_mouse();
       mouse.set_config(1);
@@ -131,27 +132,24 @@ void main_loop() {
         mouse.error_ping();
       }
     }
-    // else if (mode == 3)
-    // {
-    //   // smouth run and back
+    else if (mode == 3)
+    {
+      // NORMAL RUN 90
 
-    //   mouse.reset_mouse();
-    //   maze.reset_maze();
-      
-    //   maze.load_maze();
-    //   maze.lock_maze();
+      mouse.reset_mouse();
+      mouse.set_config(0);
 
-    //   bool finished = mouse.run_smooth();
-    //   if (finished) {
-    //     mouse.finish_ping();
-    //     finished = mouse.run_smooth(false);
-    //   }
+      bool finished = mouse.explore_90();
+      if (finished) {
+        mouse.finish_ping();
+        finished = mouse.explore_90(false);
+      }
 
-    //   if (!finished) {
-    //     mouse.error_ping();
-    //     mouse.print_info();
-    //   }
-    // }
+      if (!finished) {
+        mouse.error_ping();
+        mouse.print_info();
+      }
+    }
     // else if (mode == 4)
     // {
     //   // smouth run and back
@@ -186,7 +184,8 @@ void main_loop() {
     // }
     else if (mode == 6)
     {
-      
+      // reset maze
+      maze.reset_maze();
     }
     // else if (mode == 7)
     // {
