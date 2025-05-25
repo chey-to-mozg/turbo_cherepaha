@@ -12,6 +12,7 @@ const bool SERIAL_ENABLE = true;
 //** SERIAL PRINT **//
 #define DEBUG_LOGGING 0
 #define DEBUG_MAZE 0
+#define USE_GYRO 1
 
 const bool DEBUG_AVAILABLE = DEBUG_LOGGING;
 
@@ -39,7 +40,7 @@ const int MIN_PWM = -250;
 const float KP_FWD = 4.0;
 const float KD_FWD = 2.0;
 
-const float KP_ROT = 0.0;
+const float KP_ROT = 10.0;
 const float KD_ROT = 0.0;
 
 // controller constants for the steering controller
@@ -61,7 +62,7 @@ enum Direction: uint8_t {
 
 //** SENSORS **/
 const float REF_VCC = 8.4; // reference battary level for sensor readaings
-const int LEFT_CALIBRATION = 144; // test when robot centered and no front wall
+const int LEFT_CALIBRATION = 142; // test when robot centered and no front wall
 const int RIGHT_CALIBRATION = 144; // test when robot centered and no front wall
 const int FRONT_CALIBRATION_LEFT = 175; // test when robot with back walls
 // const int FRONT_CALIBRATION_RIGHT = 195; // test when robot with back walls

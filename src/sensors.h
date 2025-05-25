@@ -2,11 +2,12 @@
 #define SENSORS_H
 
 #include <Arduino.h>
-#include <Wire.h>
 #include <config.h>
 #include "leds.h"
 #include <util/atomic.h>
 #include <iarduino_VCC.h>
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps20.h"
 
 
 extern int g_left_sensor_raw;
@@ -25,7 +26,7 @@ extern bool g_is_front_wall;
 extern bool g_left_button;
 extern bool g_right_button;
 
-extern float gyro_error;
+extern float g_gyro_angle;
 
 
 /*** steering variables ***/
@@ -44,13 +45,7 @@ bool button_pressed();
 void reset_steering();
 void enable_steering();
 void disable_steering();
-void update_gyro_reference(float diff);
 
 int get_front_sensor();
-
-void start_gyro_read();
-float read_gyro();
-void reset_gyro();
-void calibrate_gyro();
 
 #endif

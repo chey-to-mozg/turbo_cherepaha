@@ -75,9 +75,7 @@ float get_robot_position() {
 }
 
 float get_robot_angle() {
-  float _angle;
-  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { _angle = angle; }
-  return _angle;
+  return angle;
 }
 
 float get_increment_left() {

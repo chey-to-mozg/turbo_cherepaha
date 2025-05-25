@@ -60,7 +60,7 @@ void Motor::accelerate() {
             this->acceleration_speed = this->speed;
         }
         else {
-            int speed_delta = 5;
+            int speed_delta = 6;
             if (this->speed < 0) {
                 speed_delta *= -1;
             }
@@ -87,10 +87,11 @@ void Motor::update_pwm(float distance_change, float angle_error, float pos_error
     float de = this->last_speed_error - e;
     this->last_speed_error = e;
     float speed_error = e * KP_FWD + de * KD_FWD;
-    angle_error = angle_error * KP_ROT;
+    float a_de = this->last_angle_error - angle_error;
+    this->last_angle_error = angle_error;
+    angle_error = angle_error * KP_ROT + a_de * KD_ROT;
     pwm_new = this->acceleration_speed * SPEED_FF;
-    this->cum_speed_error = speed_error + angle_error;
-    pwm_new += this->cum_speed_error + pos_error;
+    pwm_new += speed_error + angle_error + pos_error;
     set_pwm((int)pwm_new);
 }
 
@@ -131,7 +132,11 @@ void update_motor_controllers() {
     float pos_error = 0;
     if (g_steering_enabled) {
         pos_error = calculate_steering_adjustment();
-        angle_error = get_robot_angle() - mouse.get_angle();
+        if (USE_GYRO) {
+            angle_error = g_gyro_angle - mouse.get_angle();
+        } else {
+            angle_error = get_robot_angle() - mouse.get_angle();
+        }
     }
     motor_left.update_pwm(increment_left, angle_error, pos_error);
     motor_right.update_pwm(increment_right, -angle_error, -pos_error);

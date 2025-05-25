@@ -30,12 +30,21 @@ void test_run() {
   //   print_sensors();
   //   delay(1000);
   // }
-  mouse.set_config(0);
+  mouse.reset_mouse();
+  mouse.set_config(1);
   enable_motors();
   mouse.move_from_wall();
   mouse.move_half_cell();
+  mouse.move_cell();
+  //mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
-  // mouse.turn_90_left_smooth();
+  mouse.turn_90_left_smooth();
+  mouse.turn_90_left_smooth();
+  // mouse.stop();
+  // while(true) {
+  //   print_sensors();
+  //   delay(1000);
+  // }
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_right_smooth();
@@ -187,21 +196,11 @@ void main_loop() {
       // reset maze
       maze.reset_maze();
     }
-    // else if (mode == 7)
-    // {
-    //   // print maze related info
-    //     Serial.println("Maze before load");
-    //     maze.print_maze();
-    //     maze.load_maze();
-    //     maze.floodfill(maze.get_finish());
-    //     Serial.println("Maze after load");
-    //     mouse.print_info();
-    //     while (!button_pressed())
-    //     {
-    //       delay(100);
-    //     }
-        
-    // }
+    else if (mode == 7)
+    {
+      // change starting direction of mouse
+      mouse.switch_start_direction();
+    }
     mouse.stop();
   }
 

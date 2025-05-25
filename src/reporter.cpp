@@ -88,12 +88,10 @@ void print_sensors() {
         Serial.print(but_left);
         Serial.print(" | ");
         Serial.print(but_right);
-
         Serial.print(" ] |");
+
         Serial.print(" ");
-        Serial.print(g_cross_track_error);
-        Serial.print(" ");
-        Serial.println(g_steering_adjustment);  
+        Serial.println(g_gyro_angle);
     }
     else
       delay(2);

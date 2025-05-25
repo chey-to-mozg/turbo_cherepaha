@@ -42,12 +42,14 @@ class Mouse {
         void reset_mouse();
         float get_angle();
         void set_config(int config_id);
+        void switch_start_direction();
     private:
         void move_angle(float turn_angle, float speed);
         void turn(float angle);
 
         bool is_start = true;
         bool is_center = false;
+        uint8_t start_direction = UP;
 
         float max_speed = 0;
         float angle_offset_left = 0;

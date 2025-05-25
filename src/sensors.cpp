@@ -22,15 +22,14 @@ bool g_steering_enabled;
 float g_cross_track_error = 0;
 float g_steering_adjustment = 0;
 
-uint32_t last_gyro_read_time = 0;
+MPU6050 mpu;
+bool DMPReady = false;
 
-const int MPU_addr=0x68;
-
-float gyro_error = 0;
+uint8_t FIFOBuffer[64];
+float g_gyro_angle;
+float prev_gyro_angle = 0;
 
 float vcc_coef = 0.0;
-
-int read_step = 0;
 
 int get_front_sensor() {
     int value;
@@ -46,22 +45,27 @@ int read_row(uint8_t sensor) {
     return vcc_coef * rawData / READS_PER_SENSOR;
 }
 
-void start_gyro_read() {
-    last_gyro_read_time = millis();
-}
-
-float read_gyro() {
-    unsigned long start_time = millis();
-    float time_delta = float(start_time - last_gyro_read_time) / 1000; // sec
-    last_gyro_read_time = start_time;
-    Wire.beginTransmission(MPU_addr);
-    Wire.write(0x47); // gyro data at 0x43, to get acc set to 0x3b
-    Wire.endTransmission(false);
-    Wire.requestFrom(MPU_addr,14,true);
-    int16_t gyro_z_raw = Wire.read()<<8 | Wire.read();
-    float gyro_delta = gyro_z_raw / 131.0 + gyro_error;
-    gyro_delta = gyro_delta * time_delta;
-    return gyro_delta;
+void read_gyro() {
+    float angle = 0;
+    if (mpu.dmpGetCurrentFIFOPacket(FIFOBuffer)) {
+        Quaternion q;           // [w, x, y, z]         Quaternion container
+        VectorFloat gravity;    // [x, y, z]            Gravity vector
+        float ypr[3];           // [yaw, pitch, roll]   Yaw/Pitch/Roll container and gravity vector
+        mpu.dmpGetQuaternion(&q, FIFOBuffer);
+        mpu.dmpGetGravity(&gravity, &q);
+        mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+        angle = ypr[0] * 180/M_PI;
+    } else {
+        angle = prev_gyro_angle;
+    }
+    if (prev_gyro_angle < -90 && angle > 90) {
+        prev_gyro_angle += 360;
+    } else if (prev_gyro_angle > 90 && angle < -90) {
+        prev_gyro_angle -= 360;
+    }
+    float angle_delta = prev_gyro_angle - angle;
+    prev_gyro_angle = angle;
+    g_gyro_angle += angle_delta;
 }
 
 void update_sensors() {
@@ -88,6 +92,7 @@ void update_sensors() {
     else if (button < LEFT_BUTTON_THRESHOLD) {
         g_left_button = true;
     }
+    read_gyro();
     if (g_steering_enabled) {
         turn_wall_leds(g_is_left_wall, g_is_front_wall, g_is_right_wall);
     }
@@ -145,13 +150,50 @@ bool button_pressed() {
     return g_left_button || g_right_button;
 }
 
-void calibrate_gyro() {
-    int num_reads = 100;
-    float gyro_val = 0;
-    for (int i = 0; i < num_reads; i++) {
-        gyro_val += read_gyro();
+void calibrate_gyro(uint8_t devStatus) {
+    if (devStatus == 0) {
+        mpu.CalibrateAccel(6);  // Calibration Time: generate offsets and calibrate our MPU6050
+        mpu.CalibrateGyro(6);
+        Serial.println("These are the Active offsets: ");
+        mpu.PrintActiveOffsets();
+        Serial.println(F("Enabling DMP..."));   //Turning ON DMP
+        mpu.setDMPEnabled(true);
+
+        mpu.getIntStatus();
+
+        /* Set the DMP Ready flag so the main loop() function knows it is okay to use it */
+        Serial.println(F("DMP ready! Waiting for first interrupt..."));
+        mpu.dmpGetFIFOPacketSize(); //Get expected DMP packet size for later comparison
+    } 
+    else {
+        while(!button_pressed()) {
+            Serial.print(F("DMP Initialization failed (code ")); //Print the error code
+            Serial.print(devStatus);
+            Serial.println(F(")"));
+            turn_all_leds();
+            delay(1000);
+        }
+        // 1 = initial memory load failed
+        // 2 = DMP configuration updates failed
     }
-    gyro_error = gyro_val / num_reads;
+}
+
+void init_gyro() {
+    Wire.begin();
+    Wire.setClock(400000); // 400kHz I2C clock. Comment on this line if having compilation difficulties
+    Serial.println(F("Initializing I2C devices..."));
+    mpu.initialize();
+    Serial.println(F("Initializing DMP..."));
+    uint8_t devStatus = mpu.dmpInitialize();
+    mpu.setXAccelOffset(5673);
+    mpu.setYAccelOffset(5439);
+    mpu.setZAccelOffset(8873);
+    mpu.setXGyroOffset(-93);
+    mpu.setYGyroOffset(-129);
+    mpu.setZGyroOffset(3);
+    
+    calibrate_gyro(devStatus);
+    g_gyro_angle = 0;
 }
 
 void init_sesnors() {
@@ -167,10 +209,5 @@ void init_sesnors() {
 
     vcc_coef = analogRead_VCC() / REF_VCC;
 
-    // Wire.begin();
-    // Wire.beginTransmission(MPU_addr);
-    // Wire.write(0x6B);
-    // Wire.write(0);
-    // Wire.endTransmission(true);
-    // calibrate_gyro();
+    init_gyro();
 }

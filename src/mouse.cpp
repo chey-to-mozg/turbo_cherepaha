@@ -4,8 +4,8 @@ Mouse mouse;
 
 float MOUSE_CONFIG[2][11] = {
 // max_speed |  angle_offset_left | pre_turn_ofset_left |   after_turn_offset_left | pre_turn_reference_left |      angle_offset_right |    pre_turn_ofset_right |  after_turn_offset_right |   pre_turn_reference_right |  front_reference |   turn_ratio
-    {300.0,     0,                  15.0,                   20.0,                    80.0,                          0,                      5.0,                    30.0,                       80.0,                       115.0,              0.33},
-    {500.0,     0,                  10.0,                   10.0,                    87.0,                          0,                      5.0,                    20.0,                       90.0,                       120.0,              0.3},
+    {300.0,    -5,                  20.0,                   25.0,                    84.0,                          5,                      5.0,                    30.0,                       82.0,                       115.0,              0.33},
+    {500.0,    -15,                 5.0,                    35.0,                    81.0,                          10,                     5.0,                    40.0,                       85.0,                       120.0,              0.25},
 };
 
 Mouse::Mouse() {
@@ -43,9 +43,18 @@ void Mouse::reset_mouse() {
     is_start = true;
     is_center = false;
     angle = 0;
+    g_gyro_angle = 0;
     reset_encoders();
-    maze.set_direction(UP);
+    maze.set_direction(this->start_direction);
     maze.set_position(maze.get_start());
+}
+
+void Mouse::switch_start_direction() {
+    if (this->start_direction == UP) {
+        this->start_direction = RIGHT;
+    } else {
+        this->start_direction = UP;
+    }
 }
 
 void Mouse::print_info() {
@@ -99,17 +108,15 @@ void Mouse::move_angle(float turn_angle, float speed) {
     }
     motor_left.set_speed(left_speed);
     motor_right.set_speed(right_speed);
-    while (abs(get_robot_angle() - this->angle) < abs(turn_angle)) {
-        update_motor_controllers();
-        print_motors();
+    if (USE_GYRO) {
+        while (abs(g_gyro_angle - this->angle) < abs(turn_angle)) {
+            update_motor_controllers();
+        }
+    } else {
+        while (abs(get_robot_angle() - this->angle) < abs(turn_angle)) {
+            update_motor_controllers();
+        }
     }
-    // float cur_angle = 0;
-    // start_gyro_read();
-    // while (abs(cur_angle) < abs(turn_angle)) {
-    //     update_motor_controllers();
-    //     cur_angle += read_gyro();
-    //     print_motors();
-    // }
     this->angle += turn_angle;
 
     stop_motors();
@@ -257,13 +264,18 @@ void Mouse::turn_90_left_smooth() {
     float right_speed = this->max_speed;
     motor_left.set_speed(left_speed);
     motor_right.set_speed(right_speed);
-    // float cur_angle = this->angle;
-    // start_gyro_read();
-    while (get_robot_angle() < this->angle + turn_angle + this->angle_offset_left) {
-        update_motor_controllers();
-        // cur_angle += read_gyro();
+    if (USE_GYRO) {
+        while (g_gyro_angle < this->angle + turn_angle + this->angle_offset_left) {
+            update_motor_controllers();
+        }
+    } else {
+        while (get_robot_angle() < this->angle + turn_angle + this->angle_offset_left) {
+            update_motor_controllers();
+        }
     }
     this->angle += turn_angle;
+
+    enable_steering();
     move(this->after_turn_offset_left, this->max_speed);
 }
 
@@ -283,16 +295,19 @@ void Mouse::turn_90_right_smooth() {
     float right_speed = this->turn_ratio * this->max_speed;
     motor_left.set_speed(left_speed);
     motor_right.set_speed(right_speed);
-    // float cur_angle = this->angle;
-    // start_gyro_read();
-    while (get_robot_angle() > this->angle + turn_angle + this->angle_offset_right) {
-        update_motor_controllers();
-        // cur_angle += read_gyro();
-        print_motors();
+    if (USE_GYRO) {
+        while (g_gyro_angle > this->angle + turn_angle + this->angle_offset_right) {
+            update_motor_controllers();
+        }
+    } else {
+        while (get_robot_angle() > this->angle + turn_angle + this->angle_offset_right) {
+            update_motor_controllers();
+        }
     }
     this->angle += turn_angle;
-    
-    move(this->after_turn_offset_right, SPEEDMAX_EXPLORE);
+
+    enable_steering();
+    move(this->after_turn_offset_right, this->max_speed);
 }
 
 void Mouse::turn_around() {
@@ -304,6 +319,7 @@ void Mouse::turn_around() {
         is_start = true;
         is_center = false;
         this->angle = 0;
+        g_gyro_angle = 0;
         reset_encoders();
     }
     stop_motors();
