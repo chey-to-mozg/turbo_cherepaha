@@ -41,53 +41,32 @@ void init_serial() {
 
 void print_sensors() {
     if (DEBUG_AVAILABLE) {
-        int left_raw;
-        int front_raw_left;
-        // int front_raw_right;
-        int right_raw;
-        int left;
-        int front;
-        int right;
-        bool but_left;
-        bool but_right;
-        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-            left = g_left_sensor;
-            front = g_front_sensor;
-            right = g_right_sensor;
-            left_raw = g_left_sensor_raw;
-            front_raw_left = g_front_sensor_raw_left;
-            // front_raw_right = g_front_sensor_raw_right;
-            right_raw = g_right_sensor_raw;
-            but_left = g_left_button;
-            but_right = g_right_button;
-        }
-
         Serial.print("<");
         Serial.print(" ");
-        Serial.print(left_raw);
+        Serial.print(g_left_sensor_raw);
         Serial.print(" ");
-        Serial.print(left);
+        Serial.print(g_left_sensor);
         Serial.print(" ");
 
         Serial.print(">");
         Serial.print(" ");
-        Serial.print(right_raw);
+        Serial.print(g_right_sensor_raw);
         Serial.print(" ");
-        Serial.print(right);
+        Serial.print(g_right_sensor);
         Serial.print(" ");
 
         Serial.print("^");
         Serial.print(" ");
-        Serial.print(front_raw_left);
+        Serial.print(g_front_sensor_raw_left);
         // Serial.print(" ");
         // Serial.print(front_raw_right);
         Serial.print(" ");
-        Serial.print(front);
+        Serial.print(g_front_sensor);
 
         Serial.print(" [ ");
-        Serial.print(but_left);
+        Serial.print(g_left_button);
         Serial.print(" | ");
-        Serial.print(but_right);
+        Serial.print(g_right_button);
         Serial.print(" ] |");
 
         Serial.print(" ");

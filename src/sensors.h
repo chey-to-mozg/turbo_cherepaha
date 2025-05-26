@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <config.h>
 #include "leds.h"
-#include <util/atomic.h>
 #include <iarduino_VCC.h>
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"

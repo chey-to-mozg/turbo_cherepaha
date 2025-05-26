@@ -40,20 +40,18 @@ void right_increment() {
 }
 
 void reset_encoders() {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      count_left = 0;
-      count_right = 0;
-      total_conut_left = 0;
-      total_count_right = 0;
-      distance_left = 0;
-      distance_increment_left = 0;
-      distance_right = 0;
-      distance_increment_right = 0;
-      delta_left = 0;
-      delta_right = 0;
-      distance = 0;
-      angle = 0; 
-    }
+    count_left = 0;
+    count_right = 0;
+    total_conut_left = 0;
+    total_count_right = 0;
+    distance_left = 0;
+    distance_increment_left = 0;
+    distance_right = 0;
+    distance_increment_right = 0;
+    delta_left = 0;
+    delta_right = 0;
+    distance = 0;
+    angle = 0; 
 }
 
 void init_encoders() {
@@ -69,9 +67,7 @@ void init_encoders() {
 }
 
 float get_robot_position() {
-  float _distance;
-  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { _distance = distance; }
-  return _distance;
+  return distance;
 }
 
 float get_robot_angle() {
@@ -79,24 +75,18 @@ float get_robot_angle() {
 }
 
 float get_increment_left() {
-  float _increment;
-  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { _increment = distance_increment_left; }
-  return _increment;
+  return distance_increment_left;
 }
 
 float get_increment_right() {
-  float _increment;
-  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) { _increment = distance_increment_right; }
-  return _increment;
+  return distance_increment_right;
 }
 
 void update_encoders() {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      delta_left = count_left;
-      delta_right = count_right;
-      count_left = 0;
-      count_right = 0;
-    }
+    delta_left = count_left;
+    delta_right = count_right;
+    count_left = 0;
+    count_right = 0;
     total_conut_left += delta_left;
     total_count_right += delta_right;
     distance_increment_left = delta_left * MM_PER_COUNT_LEFT;

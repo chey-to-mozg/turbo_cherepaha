@@ -2,7 +2,6 @@
 #define ENCODERS_H
 
 #include "config.h"
-#include <util/atomic.h>
 
 extern int total_conut_left;
 extern int total_count_right;

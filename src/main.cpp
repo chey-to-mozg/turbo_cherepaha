@@ -4,7 +4,7 @@
 #include "mouse.h"
 #include "maze.h"
 #include "motors.h"
-#include "utils.h"
+// #include "utils.h"
 
 uint8_t mode = 0;
 
@@ -14,50 +14,17 @@ void setup() {
   init_sesnors();
   init_encoders();
   init_leds();
-  delay(3000); // wait for sensor data dump
-  mouse.update_walls();
 }
 
 void test_run() {
-  // enable_steering();
-  // motor_left.set_speed(300);
-  // motor_right.set_speed(300);
-  // while(true) {
-  //   update_motor_controllers();
-  // }
-  // check_pwm_control();
-  // while(true) {
-  //   print_sensors();
-  //   delay(1000);
-  // }
   mouse.reset_mouse();
   mouse.set_config(1);
   enable_motors();
   mouse.move_from_wall();
   mouse.move_half_cell();
   mouse.move_cell();
-  //mouse.turn_90_right_smooth();
-  // mouse.turn_90_right_smooth();
   mouse.turn_90_left_smooth();
   mouse.turn_90_left_smooth();
-  // mouse.stop();
-  // while(true) {
-  //   print_sensors();
-  //   delay(1000);
-  // }
-  // mouse.turn_90_right_smooth();
-  // mouse.turn_90_right_smooth();
-  // mouse.turn_90_right_smooth();
-  // mouse.move_cell();
-  // mouse.turn_90_left_smooth();
-  // mouse.turn_90_left_smooth();
-  // mouse.turn_90_left_smooth();
-  // mouse.move_cell();
-  // mouse.turn_90_left_smooth();
-  // mouse.move_cell();
-  // mouse.turn_90_left_smooth();
-  // mouse.move_cell();
-  // mouse.move_cell(true);
 }
 
 void test_loop() {
@@ -68,7 +35,7 @@ void test_loop() {
       test_run();
     }
     else if (mode == 1) {
-      check_speed();
+      // check_speed();
     }
     
     mouse.stop();
@@ -79,13 +46,6 @@ void test_loop() {
 void main_loop() {
   while (1) {
     mode = mouse.wait_to_start();
-    // float vcc = analogRead_VCC();
-    // while(true) {
-    //   Serial.println(vcc);
-    //   Serial.println(analogRead_VCC());
-    //   print_sensors();
-    //   delay(1000);
-    // }
 
     if (mode == 0){
       //** NORMAL RUN **//
@@ -200,6 +160,7 @@ void main_loop() {
     {
       // change starting direction of mouse
       mouse.switch_start_direction();
+      mouse.reset_mouse();
     }
     mouse.stop();
   }
