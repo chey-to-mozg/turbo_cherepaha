@@ -8,3 +8,6 @@ Repository for maze solving robot
 - включение моторов для тестирования
 
 Также присутсвтуют вспомогательные скрипты для тестированя функциональности робота
+
+
+![alt text](images/turbo_cherepaha.jpeg)
