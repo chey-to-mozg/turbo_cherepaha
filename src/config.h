@@ -49,7 +49,7 @@ const float KD_STEER = 2.0;
 
 //** MAZE **/
 
-const float CELL = 180.0;
+const float CELL = 175.0;
 const float HALF_CELL = CELL / 2;
 const int SHAPE = 3;
 
@@ -78,7 +78,7 @@ const int READS_PER_SENSOR = 1;
 // values to detect walls 70
 const int LEFT_THRESHOLD = 70;
 const int RIGHT_THRESHOLD = 70;
-const int FRONT_THRESHOLD = 75;
+const int FRONT_THRESHOLD = 70;
 
 // button treshold
 const int LEFT_BUTTON_THRESHOLD = 200;

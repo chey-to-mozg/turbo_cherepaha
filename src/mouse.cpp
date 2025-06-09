@@ -4,8 +4,8 @@ Mouse mouse;
 
 float MOUSE_CONFIG[2][11] = {
 // max_speed |  angle_offset_left | pre_turn_ofset_left |   after_turn_offset_left | pre_turn_reference_left |      angle_offset_right |    pre_turn_ofset_right |  after_turn_offset_right |   pre_turn_reference_right |  front_reference |   turn_ratio
-    {300.0,    -5,                  20.0,                   25.0,                    84.0,                          5,                      5.0,                    30.0,                       82.0,                       115.0,              0.33},
-    {500.0,    -15,                 5.0,                    35.0,                    81.0,                          10,                     5.0,                    40.0,                       85.0,                       120.0,              0.25},
+    {300.0,    -5,                  20.0,                   25.0,                    84.0,                          5,                      5.0,                    30.0,                       80.0,                       115.0,              0.33},
+    {500.0,    -15,                 5.0,                    35.0,                    80.0,                          10,                     5.0,                    40.0,                       82.0,                       120.0,              0.25},
 };
 
 Mouse::Mouse() {

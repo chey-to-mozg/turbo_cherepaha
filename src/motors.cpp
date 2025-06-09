@@ -142,3 +142,17 @@ void update_motor_controllers() {
     motor_right.update_pwm(increment_right, -angle_error, -pos_error);
     print_motors();
 }
+
+void test_mototrs() {
+    for (int i = 0; i < 255; i++) {
+        analogWrite(LEFT_PWM, i);
+        analogWrite(RIGHT_PWM, i);
+        delay(10);
+    }
+    while(!button_pressed()) {
+
+    }
+    analogWrite(LEFT_PWM, 0);
+    analogWrite(RIGHT_PWM, 0);
+    delay(2000);
+}

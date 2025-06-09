@@ -142,15 +142,10 @@ void main_loop() {
     //     mouse.print_info();
     //   }
     // }
-    // else if (mode == 5)
-    // {
-    //   if (maze.get_direction() == UP) {
-    //     maze.set_direction(RIGHT);
-    //   }
-    //   else {
-    //     maze.set_direction(UP);
-    //   }
-    // }
+    else if (mode == 5)
+    {
+      test_mototrs();
+    }
     else if (mode == 6)
     {
       // reset maze

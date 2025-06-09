@@ -43,4 +43,5 @@ void stop_motors();
 void update_motor_controllers();
 void disable_motors();
 void enable_motors();
+void test_mototrs();
 #endif
