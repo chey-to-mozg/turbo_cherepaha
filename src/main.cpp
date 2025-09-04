@@ -103,21 +103,24 @@ void main_loop() {
     }
     else if (mode == 3)
     {
-      // NORMAL RUN 90
+      // FASR RUN WITH DIAG
 
       mouse.reset_mouse();
       mouse.set_config(0);
+      maze.reset_maze();
 
-      bool finished = mouse.explore_90();
+      maze.load_maze();
+      maze.lock_maze();
+
+      bool finished = mouse.run_short(true);
       if (finished) {
         mouse.finish_ping();
-        finished = mouse.explore_90(false);
-      }
-
-      if (!finished) {
+        mouse.set_config(0);
+        mouse.explore(false);
+      } else {
         mouse.error_ping();
-        mouse.print_info();
       }
+      
     }
     // else if (mode == 4)
     // {

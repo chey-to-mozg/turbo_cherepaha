@@ -15,7 +15,7 @@ Mouse::Mouse() {
     max_speed = SPEEDMAX_EXPLORE;
 }
 
-float Mouse::get_angle() {
+int Mouse::get_angle() {
     return angle;
 }
 
@@ -93,7 +93,7 @@ void Mouse::move(float distance, float speed, int check_wall_distance) {
 }
 
 
-void Mouse::move_angle(float turn_angle, float speed) {
+void Mouse::move_angle(int turn_angle, float speed) {
     // get ready to turn
     disable_steering();
     stop_motors();
@@ -122,7 +122,7 @@ void Mouse::move_angle(float turn_angle, float speed) {
     stop_motors();
 }
 
-void Mouse::turn(float angle) {
+void Mouse::turn(int angle) {
     move_angle(angle, SPEEDMAX_SPIN_TURN);
 }
 
@@ -237,6 +237,11 @@ void Mouse::move_cell(bool untill_wall) {
     move(CELL, max_speed, dist_to_wall);
 }
 
+void Mouse::move_diag() {
+    enable_steering();
+    move(DIAG, max_speed);
+}
+
 void Mouse::move_backward() {
     move(-HALF_CELL, max_speed / 2);
 }
@@ -250,7 +255,7 @@ void Mouse::turn_90_right() {
 }
 
 void Mouse::turn_90_left_smooth() {
-    float turn_angle = 90;
+    int turn_angle = 90;
     disable_steering();
     
     move(this->pre_turn_ofset_left, this->max_speed, this->pre_turn_reference_left);
@@ -279,8 +284,45 @@ void Mouse::turn_90_left_smooth() {
     move(this->after_turn_offset_left, this->max_speed);
 }
 
+void Mouse::turn_45_left_smooth() {
+    int turn_angle = 45;
+    disable_steering();
+    float pre_turn_ref = 0;
+    if (!is_diag) {
+        pre_turn_ref = this->pre_turn_reference_left;
+        is_diag = true;
+    } else {
+        is_diag = false;
+    }
+    
+    move(this->pre_turn_ofset_left, this->max_speed, pre_turn_ref);
+    // int saved_sensor = g_front_sensor;
+    // stop();
+    // while (1) {
+    //     Serial.println(saved_sensor);
+    //     delay(1000);
+    // }
+    float left_speed = this->turn_ratio * this->max_speed;
+    float right_speed = this->max_speed;
+    motor_left.set_speed(left_speed);
+    motor_right.set_speed(right_speed);
+    if (USE_GYRO) {
+        while (g_gyro_angle < this->angle + turn_angle + this->angle_offset_left) {
+            update_motor_controllers();
+        }
+    } else {
+        while (get_robot_angle() < this->angle + turn_angle + this->angle_offset_left) {
+            update_motor_controllers();
+        }
+    }
+    this->angle += turn_angle;
+
+    enable_gyro();
+    move(this->after_turn_offset_left, this->max_speed);
+}
+
 void Mouse::turn_90_right_smooth() {
-    float turn_angle = -90;
+    int turn_angle = -90;
     disable_steering();
     
     move(this->pre_turn_ofset_right, this->max_speed, this->pre_turn_reference_right);
@@ -310,8 +352,48 @@ void Mouse::turn_90_right_smooth() {
     move(this->after_turn_offset_right, this->max_speed);
 }
 
+void Mouse::turn_45_right_smooth() {
+    int turn_angle = -45;
+    disable_steering();
+    
+    float pre_turn_ref = 0;
+    if (!is_diag) {
+        pre_turn_ref = this->pre_turn_reference_right;
+        is_diag = true;
+    } else {
+        is_diag = false;
+    }
+
+    move(this->pre_turn_ofset_right, this->max_speed, pre_turn_ref);
+    // int saved_sensor = g_front_sensor;
+    // stop();
+    // while (1) {
+    //     Serial.println(saved_sensor);
+    //     delay(1000);
+    // }
+    
+    float left_speed = this->max_speed;
+    float right_speed = this->turn_ratio * this->max_speed;
+    motor_left.set_speed(left_speed);
+    motor_right.set_speed(right_speed);
+    if (USE_GYRO) {
+        while (g_gyro_angle > this->angle + turn_angle + this->angle_offset_right) {
+            update_motor_controllers();
+        }
+    } else {
+        while (get_robot_angle() > this->angle + turn_angle + this->angle_offset_right) {
+            update_motor_controllers();
+        }
+    }
+    this->angle += turn_angle;
+
+    enable_gyro();
+    move(this->after_turn_offset_right, this->max_speed);
+}
+
+
 void Mouse::turn_around() {
-    float angle = 180;
+    int angle = 180;
     turn(angle);
     // we check wall before direction update
     if (maze.is_wall(UP)) {
@@ -497,12 +579,15 @@ bool Mouse::explore(bool to_finish) {
     return path_exists;
 }
 
-bool Mouse::run_short() {
+bool Mouse::run_short(bool diag) {
     Pair target = maze.get_finish();
     maze.floodfill(target);
     bool path_exists = maze.find_path(maze.get_position());
     if (!path_exists) {
         return false;
+    }
+    if (diag) {
+        maze.gen_diag();
     }
     maze.print_maze();
     maze.print_path();
@@ -537,8 +622,15 @@ bool Mouse::run_short() {
                     else {
                         move_cell();
                     }
-                }  
-                maze.update_position();
+                }
+                break;
+            case 'D':
+                if (DEBUG_MAZE) {
+                    Serial.println("Diagonal");
+                }
+                else {
+                    move_diag();
+                }
                 break;
             case 'R':
                 if (DEBUG_MAZE) {
@@ -549,8 +641,14 @@ bool Mouse::run_short() {
                 }
                 maze.get_next_move(true); // after turn command it is forward command, so we should pop it
                 i++;
-                maze.update_direction(RIGHT);
-                maze.update_position();
+                break;
+            case 'r':
+                if (DEBUG_MAZE) {
+                    Serial.println("Right 45");
+                }
+                else {
+                    turn_45_right_smooth();
+                }
                 break;
             case 'L':
                 if (DEBUG_MAZE) {
@@ -561,14 +659,20 @@ bool Mouse::run_short() {
                 }
                 maze.get_next_move(true); // after turn command it is forward command, so we should pop it
                 i++;
-                maze.update_direction(LEFT);
-                maze.update_position();
                 // float cur_angle = get_robot_angle();
                 // stop();
                 // while(1) {
                 //     Serial.println(cur_angle);
                 //     delay(1000);
                 // }
+                break;
+            case 'l':
+                if (DEBUG_MAZE) {
+                    Serial.println("Left 45");
+                }
+                else {
+                    turn_45_left_smooth();
+                }
                 break;
             default:
                 // shouldnt exist
@@ -577,141 +681,32 @@ bool Mouse::run_short() {
         }
     }
 
-    if (path_exists) {
-        set_config(0);
-        if (!DEBUG_MAZE) {
-            move_half_cell(true);
-            is_center = true;
-        }
+    set_config(0);
+    if (!DEBUG_MAZE) {
+        move_half_cell(true);
+        is_center = true;
     }
+
+    maze.set_position(maze.get_finish());
+    uint8_t ang = UP;
+    this->angle = this->angle % 360;
+    switch (this->angle) {
+        case 0:
+            ang = UP;
+            break;
+        case 90:
+            ang = RIGHT;
+            break;
+        case 180:
+            ang = DOWN;
+            break;
+        case 270:
+            ang = LEFT;
+            break;
+    }
+    maze.set_direction(ang);
     
     stop();
     return path_exists;
 }
 
-bool Mouse::explore_90(bool to_finish) {
-    // init wall before start
-    
-    Pair target;
-    if (to_finish) {
-        target = maze.get_finish();
-    }
-    else {
-        target = maze.get_start();
-    }
-    
-    maze.floodfill(target);
-
-    bool path_exists = maze.find_path(maze.get_position());
-    char next_path;
-    bool recalculate = false;
-
-    if (path_exists) {
-        enable_motors();
-
-        while(path_exists && maze.get_position() != target) {
-            update_walls();
-            if (DEBUG_MAZE) {
-                print_info();
-                maze_debug();
-            }
-            for (int i = 0; i < maze.get_path_len(); i++) {
-                if (button_pressed()) {
-                    return false;
-                }
-                
-                next_path = maze.get_next_move();
-
-                if (is_start) {
-                    if (!DEBUG_MAZE) {
-                        move_from_wall();
-                    }
-                    is_start = false;
-                    is_center = true;
-                }
-
-                switch (next_path)
-                {
-                    case 'F':
-                        if (maze.is_wall(UP)) {
-                            recalculate = true;
-                        }
-                        else {
-                            if (DEBUG_MAZE) {
-                                Serial.println("Forward");
-                            }
-                            else {
-                                move_cell(true);
-                            }
-                            maze.update_position();
-                        }
-                        break;
-                    case 'R':
-                        if (maze.is_wall(RIGHT)) {
-                            recalculate = true;
-                        }
-                        else {
-                            if (DEBUG_MAZE) {
-                                Serial.println("Right");
-                            }
-                            else {
-                                turn_90_right();
-                            }
-                            maze.update_direction(RIGHT);
-                        }
-                        break;
-                    case 'A':
-                        if (DEBUG_MAZE) {
-                            Serial.println("Around");
-                        }
-                        else {
-                            turn_around();
-                        }
-                        maze.update_direction(DOWN);
-                        
-                        // set gyro error to zero
-                        break;
-                    case 'L':
-                        if (maze.is_wall(LEFT)) {
-                            recalculate = true;
-                        }
-                        else {
-                            if (DEBUG_MAZE) {
-                                Serial.println("Left");
-                            }
-                            else {
-                                turn_90_left();
-                            }
-                            maze.update_direction(LEFT);
-                        }
-                        break;
-                    default:
-                        // shouldnt exist
-                        stop();
-                        return false;
-                }
-
-                // check if mouse can move next step, otherwise floodfill
-                if (recalculate) {
-                    maze.floodfill(target);
-                    path_exists = maze.find_path(maze.get_position());
-                    recalculate = false;
-                    if (DEBUG_LOGGING) {
-                        Serial.println("Recalculated!");
-                    }
-                    break;
-                }
-
-                update_walls();
-                if (DEBUG_MAZE) {
-                    print_info();
-                    Serial.print("Current iteration: ");
-                    Serial.println(i);
-                    maze_debug();
-                }
-            }
-        }           
-    }
-    stop();
-    return path_exists;
-}

@@ -29,9 +29,9 @@ extern float g_gyro_angle;
 
 
 /*** steering variables ***/
-extern bool g_steering_enabled;
-extern float g_cross_track_error;
-extern float g_steering_adjustment;
+extern bool g_wall_enabled;
+extern bool g_gyro_enabled;
+
 
 void update_sensors();
 
@@ -41,9 +41,14 @@ int read_row(uint8_t sensor);
 void init_sesnors();
 bool button_pressed();
 
-void reset_steering();
 void enable_steering();
 void disable_steering();
+
+void enable_gyro();
+void disable_gyro();
+
+void enable_wall();
+void disable_wall();
 
 int get_front_sensor();
 

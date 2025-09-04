@@ -51,6 +51,7 @@ const float KD_STEER = 2.0;
 
 const float CELL = 180.0;
 const float HALF_CELL = CELL / 2;
+const float DIAG = 254.0 / 2; // sqrt(2* cell ^ 2) / 2
 const int SHAPE = 3;
 
 enum Direction: uint8_t {

@@ -29,26 +29,30 @@ class Mouse {
         void move_from_wall();
         void move_half_cell(bool untill_wall = false);
         void move_cell(bool untill_wall = false);
+        void move_diag();
         void turn_90_left();
         void turn_90_right();
         void turn_90_left_smooth();
         void turn_90_right_smooth();
+        void turn_45_left_smooth();
+        void turn_45_right_smooth();
         void turn_around();
         void move_backward();
         void update_walls();
         bool explore(bool to_finish = true);
-        bool explore_90(bool to_finish = true);
-        bool run_short();
+        bool run_short(bool diag = false);
         void reset_mouse();
-        float get_angle();
+        int get_angle();
         void set_config(int config_id);
         void switch_start_direction();
     private:
-        void move_angle(float turn_angle, float speed);
-        void turn(float angle);
+
+        void move_angle(int turn_angle, float speed);
+        void turn(int angle);
 
         bool is_start = true;
         bool is_center = false;
+        bool is_diag = false;
         uint8_t start_direction = UP;
 
         float max_speed = 0;
@@ -62,7 +66,7 @@ class Mouse {
         float pre_turn_reference_right = 0;
         float front_reference = 0;
         float turn_ratio = 0;
-        float angle = 0;
+        int angle = 0;
 };
 
 extern Mouse mouse;

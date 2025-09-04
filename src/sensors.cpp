@@ -18,9 +18,8 @@ bool g_right_button;
 
 static float last_steering_error = 0;
 
-bool g_steering_enabled;
-float g_cross_track_error = 0;
-float g_steering_adjustment = 0;
+bool g_wall_enabled;
+bool g_gyro_enabled;
 
 MPU6050 mpu;
 bool DMPReady = false;
@@ -93,7 +92,7 @@ void update_sensors() {
         g_left_button = true;
     }
     read_gyro();
-    if (g_steering_enabled) {
+    if (g_wall_enabled) {
         turn_wall_leds(g_is_left_wall, g_is_front_wall, g_is_right_wall);
     }
     
@@ -116,8 +115,6 @@ float calculate_steering_adjustment() {
     //     error = 0;
     // }
 
-    g_cross_track_error = error;
-
     // always calculate the adjustment for testing. It may not get used.
     float pTerm = KP_STEER * error;
     float dTerm = KD_STEER * (error - last_steering_error);
@@ -129,20 +126,30 @@ float calculate_steering_adjustment() {
 }
 
 // wall calibration controls
-
-void reset_steering() {
-  last_steering_error = g_cross_track_error;
-  g_steering_adjustment = 0;
-}
-
 void enable_steering() {
-  reset_steering();
-  g_steering_enabled = true;
+    g_wall_enabled = true;
+    g_gyro_enabled = true;
+};
+
+void enable_wall() {
+    g_wall_enabled = true;
+};
+
+void enable_gyro() {
+    g_gyro_enabled = true;
 };
 
 void disable_steering() {
-    g_steering_enabled = false;
-    reset_leds();
+    g_wall_enabled = false;
+    g_gyro_enabled = false;
+}
+
+void disable_gyro() {
+    g_gyro_enabled = false;
+}
+
+void disable_wall() {
+    g_wall_enabled = false;
 }
 
 bool button_pressed() {

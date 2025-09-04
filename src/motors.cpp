@@ -130,14 +130,19 @@ void update_motor_controllers() {
     float increment_right = get_increment_right();
     float angle_error = 0;
     float pos_error = 0;
-    if (g_steering_enabled) {
+
+    if (g_wall_enabled) {
         pos_error = calculate_steering_adjustment();
+    }
+
+    if (g_gyro_enabled) {
         if (USE_GYRO) {
             angle_error = g_gyro_angle - mouse.get_angle();
         } else {
             angle_error = get_robot_angle() - mouse.get_angle();
         }
     }
+    
     motor_left.update_pwm(increment_left, angle_error, pos_error);
     motor_right.update_pwm(increment_right, -angle_error, -pos_error);
     print_motors();

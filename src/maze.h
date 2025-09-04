@@ -43,6 +43,7 @@ class Maze {
         void reset_maze();
         void floodfill(Pair target);
         bool find_path(Pair start);
+        void gen_diag();
         char get_next_move(bool update_counter = true);
         uint8_t get_path_len();
         void set_walls(bool is_left_wall, bool is_front_wall, bool is_right_wall);
