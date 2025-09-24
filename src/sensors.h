@@ -1,7 +1,6 @@
 #ifndef SENSORS_H
 #define SENSORS_H
 
-#include <Arduino.h>
 #include <config.h>
 #include "leds.h"
 #include <iarduino_VCC.h>

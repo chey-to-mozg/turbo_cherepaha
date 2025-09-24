@@ -1,16 +1,14 @@
 #ifndef MOTORS_H
 #define MOTORS_H
 
-#include <Arduino.h>
 #include <limits.h>
 #include "config.h"
 #include "encoders.h"
 #include "sensors.h"
-#include "mouse.h"
 
 class Motor {
     public:
-        Motor(int dir_pin, int pwm_pin, int encoder_polarity);
+        Motor(int dir_pin_1, int dir_pin_2, int pwm_pin, int encoder_polarity);
         void reset_motor();
         void set_speed(float speed);
         void set_pwm(int pwm);
@@ -21,7 +19,8 @@ class Motor {
     private:
         void set_direction(int direction); // 1 or -1
         void accelerate();
-        int dir_pin;
+        int dir_pin_1;
+        int dir_pin_2;
         int pwm_pin;
         int polarity;
         bool accelerating = true;
@@ -40,7 +39,7 @@ extern Motor motor_left;
 extern Motor motor_right;
 
 void stop_motors();
-void update_motor_controllers();
+void update_motor_controllers(int mouse_angle = 0);
 void disable_motors();
 void enable_motors();
 void test_mototrs();

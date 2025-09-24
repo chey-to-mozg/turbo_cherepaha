@@ -1,4 +1,6 @@
+#include "config.h"
 #include "motors.h"
+#include "reporter.h"
+#include "mouse.h"
 
-void check_speed();
-void check_pwm_control();
+uint8_t wait_to_start();

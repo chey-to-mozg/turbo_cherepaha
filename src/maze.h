@@ -1,7 +1,7 @@
 #ifndef MAZE_H
 #define MAZE_H
 
-#include <Arduino.h>
+#include "config.h"
 #include "queue.h"
 #include <EEPROM.h>
 

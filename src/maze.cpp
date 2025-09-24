@@ -174,53 +174,6 @@ bool Maze::find_path(Pair start) {
 }
 
 void Maze::gen_diag() {
-    char tmp[path_len] = {};
-    uint8_t diag_path_len = 0;
-    char p1, p2, p3;
-    for (int i = 0; i < path_len; i++) {
-        if (i < 1) {
-            p1 = 'F';
-        } else {
-            p1 = path[i - 1];
-        }
-
-        p2 = path[i];
-
-        if (i + 1 >= path_len) {
-            p3 = 'F';
-        } else {
-            p3 = path[i + 1];
-        }
-
-        if (p1 == 'F' && p2 == 'L' && p3 == 'F') {
-            tmp[diag_path_len++] = 'D';
-        } else if (p1 == 'F' && p2 == 'R' && p3 == 'F') {
-            tmp[diag_path_len++] = 'D';
-        } else if (p1 == 'F' && p2 == 'F' && p3 == 'L') {
-            tmp[diag_path_len++] = 'F';
-            tmp[diag_path_len++] = 'l';
-        } else if (p1 == 'F' && p2 == 'F' && p3 == 'R') {
-            tmp[diag_path_len++] = 'F';
-            tmp[diag_path_len++] = 'r';
-        } else if (p1 == 'L' && p2 == 'F' && p3 == 'F') {
-            tmp[diag_path_len++] = 'l';
-            tmp[diag_path_len++] = 'F';
-        } else if (p1 == 'R' && p2 == 'F' && p3 == 'F') {
-            tmp[diag_path_len++] = 'r';
-            tmp[diag_path_len++] = 'F';
-        } else if (p1 == 'L' && p2 == 'F' && p3 == 'L') {
-            tmp[diag_path_len++] = 'L';
-        } else if (p1 == 'R' && p2 == 'F' && p3 == 'R') {
-            tmp[diag_path_len++] = 'R';
-        } else if (p1 == 'F' && p2 == 'F' && p3 == 'F') {
-            tmp[diag_path_len++] = 'F';
-        }
-        
-    }
-    for (int i = 0; i < diag_path_len; i++) {
-        path[i] = tmp[i];
-    }
-    path_len = diag_path_len;
 }
 
 char Maze::get_next_move(bool update_counter) {

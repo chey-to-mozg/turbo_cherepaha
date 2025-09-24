@@ -45,6 +45,9 @@ int read_row(uint8_t sensor) {
 }
 
 void read_gyro() {
+    if (!USE_GYRO) {
+        return;
+    }
     float angle = 0;
     if (mpu.dmpGetCurrentFIFOPacket(FIFOBuffer)) {
         Quaternion q;           // [w, x, y, z]         Quaternion container
@@ -83,6 +86,7 @@ void update_sensors() {
     g_is_front_wall = g_front_sensor > FRONT_THRESHOLD;
 
     int button = analogRead(BUTTON);
+    button = 255;
     g_left_button = false;
     g_right_button = false;
     if (button < RIGHT_BUTTON_THRESHOLD) {
@@ -216,5 +220,5 @@ void init_sesnors() {
 
     vcc_coef = analogRead_VCC() / REF_VCC;
 
-    init_gyro();
+    // init_gyro();
 }

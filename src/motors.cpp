@@ -1,13 +1,15 @@
 #include "motors.h"
 
-Motor motor_left(LEFT_DIR, LEFT_PWM, MOTOR_LEFT_POLARITY);
-Motor motor_right(RIGHT_DIR, RIGHT_PWM, MOTOR_RIGHT_POLARITY);
+Motor motor_left(LEFT_DIR_1, LEFT_DIR_2, LEFT_PWM, MOTOR_LEFT_POLARITY);
+Motor motor_right(RIGHT_DIR_1, RIGHT_DIR_2, RIGHT_PWM, MOTOR_RIGHT_POLARITY);
 
-Motor::Motor(int dir_pin, int pwm_pin, int encoder_polarity) {
-    this->dir_pin = dir_pin;
+Motor::Motor(int dir_pin_1, int dir_pin_2, int pwm_pin, int encoder_polarity) {
+    this->dir_pin_1 = dir_pin_1;
+    this->dir_pin_2 = dir_pin_2;
     this->pwm_pin = pwm_pin;
     this->polarity = encoder_polarity;
-    pinMode(dir_pin, OUTPUT);
+    pinMode(dir_pin_1, OUTPUT);
+    pinMode(dir_pin_2, OUTPUT);
     pinMode(pwm_pin, OUTPUT);
     this->reset_motor();
 }
@@ -33,7 +35,10 @@ void Motor::set_speed(float speed) {
 
 void Motor::set_direction(int direction) {
     int polarity_bit = (direction + 1) >> 1;
-    digitalWrite(this->dir_pin, polarity_bit ^ this->polarity);
+    int output_1 = polarity_bit ^ this->polarity;
+    int output_2 = output_1 ^ 1;
+    digitalWrite(this->dir_pin_1, output_1);
+    digitalWrite(this->dir_pin_2, output_2);
 }
 
 void Motor::set_pwm(int pwm) {
@@ -116,46 +121,45 @@ void enable_motors() {
 void stop_motors() {
     motor_left.set_speed(0);
     motor_right.set_speed(0);
+    disable_gyro();
     do {
-        update_motor_controllers();
+        update_motor_controllers(0);
     } while(motor_left.get_speed() != 0 || motor_right.get_speed() != 0);
     motor_left.reset_motor();
     motor_right.reset_motor();
 }
 
-void update_motor_controllers() {
+void update_motor_controllers(int mouse_angle) {
     update_encoders();
     update_sensors();
     float increment_left = get_increment_left();
     float increment_right = get_increment_right();
     float angle_error = 0;
     float pos_error = 0;
-
     if (g_wall_enabled) {
         pos_error = calculate_steering_adjustment();
     }
-
     if (g_gyro_enabled) {
         if (USE_GYRO) {
-            angle_error = g_gyro_angle - mouse.get_angle();
+            angle_error = g_gyro_angle - mouse_angle;
         } else {
-            angle_error = get_robot_angle() - mouse.get_angle();
+            angle_error = get_robot_angle() - mouse_angle;
         }
     }
-    
     motor_left.update_pwm(increment_left, angle_error, pos_error);
     motor_right.update_pwm(increment_right, -angle_error, -pos_error);
-    print_motors();
 }
 
 void test_mototrs() {
+    digitalWrite(LEFT_DIR_1, 0);
+    digitalWrite(LEFT_DIR_2, 1);
+    digitalWrite(RIGHT_DIR_1, 0);
+    digitalWrite(RIGHT_DIR_2, 1);
     for (int i = 0; i < 255; i++) {
+        Serial.println(i);
         analogWrite(LEFT_PWM, i);
         analogWrite(RIGHT_PWM, i);
-        delay(10);
-    }
-    while(!button_pressed()) {
-
+        delay(50);
     }
     analogWrite(LEFT_PWM, 0);
     analogWrite(RIGHT_PWM, 0);

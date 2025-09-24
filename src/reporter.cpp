@@ -1,7 +1,5 @@
 #include "reporter.h"
 
-// SoftwareSerial BT(BT_TX, BT_RX);
-
 void init_serial() {
     if (!SERIAL_ENABLE) {
         return;
@@ -17,26 +15,6 @@ void init_serial() {
     }
     Serial.println("Enabled");
 }
-
-// void init_bluetooth() {
-//     if (!BLUETOOTH_ENABLE) {
-//         return;
-//     }
-//     if (SERIAL_ENABLE) {
-//         Serial.println("Connecting to bluetooth...");
-//     }
-//     BT.begin(115200);
-//     BT.setTimeout(1);
-//     while (!BT) {
-//         delay(1000);
-//         if (SERIAL_ENABLE) {
-//             Serial.println("Connecting...");
-//         }
-//     }
-//     if (SERIAL_ENABLE) {
-//         Serial.println("Connected");
-//     }
-// } 
 
 
 void print_sensors() {
@@ -114,10 +92,6 @@ void print_motors() {
     else {
         delay(2);
     }
-}
-
-void report_bluetooth() {
-    print_sensors();
 }
 
 void report_serial() {

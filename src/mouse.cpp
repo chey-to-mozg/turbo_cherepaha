@@ -4,7 +4,7 @@ Mouse mouse;
 
 float MOUSE_CONFIG[2][11] = {
 // max_speed |  angle_offset_left | pre_turn_ofset_left |   after_turn_offset_left | pre_turn_reference_left |      angle_offset_right |    pre_turn_ofset_right |  after_turn_offset_right |   pre_turn_reference_right |  front_reference |   turn_ratio
-    {300.0,    -5,                  20.0,                   25.0,                    84.0,                          5,                      5.0,                    30.0,                       80.0,                       115.0,              0.33},
+    {300.0,    -5,                  60.0,                   15.0,                    95.0,                          5,                      60.0,                   15.0,                       95.0,                       140.0,              0.2},
     {500.0,    -15,                 5.0,                    35.0,                    80.0,                          10,                     5.0,                    40.0,                       82.0,                       120.0,              0.25},
 };
 
@@ -49,13 +49,13 @@ void Mouse::reset_mouse() {
     maze.set_position(maze.get_start());
 }
 
-void Mouse::switch_start_direction() {
-    if (this->start_direction == UP) {
-        this->start_direction = RIGHT;
-    } else {
-        this->start_direction = UP;
-    }
-}
+// void Mouse::switch_start_direction() {
+//     if (this->start_direction == UP) {
+//         this->start_direction = RIGHT;
+//     } else {
+//         this->start_direction = UP;
+//     }
+// }
 
 void Mouse::print_info() {
     maze.print_maze();
@@ -81,11 +81,11 @@ void Mouse::move(float distance, float speed, int check_wall_distance) {
     motor_right.set_speed(speed);
     float start_position = get_robot_position();
     while(abs(get_robot_position() - start_position) < abs(distance)) {
-        update_motor_controllers();
+        update_motor_controllers(this->angle);
         if (check_wall_distance > 0 && g_is_front_wall) {
             turn_wall_leds(false, true, false);
             while(g_front_sensor < check_wall_distance) {
-                update_motor_controllers();
+                update_motor_controllers(this->angle);
             }
             break;
         } 
@@ -110,11 +110,11 @@ void Mouse::move_angle(int turn_angle, float speed) {
     motor_right.set_speed(right_speed);
     if (USE_GYRO) {
         while (abs(g_gyro_angle - this->angle) < abs(turn_angle)) {
-            update_motor_controllers();
+            update_motor_controllers(this->angle);
         }
     } else {
         while (abs(get_robot_angle() - this->angle) < abs(turn_angle)) {
-            update_motor_controllers();
+            update_motor_controllers(this->angle);
         }
     }
     this->angle += turn_angle;
@@ -124,50 +124,6 @@ void Mouse::move_angle(int turn_angle, float speed) {
 
 void Mouse::turn(int angle) {
     move_angle(angle, SPEEDMAX_SPIN_TURN);
-}
-
-uint8_t Mouse::wait_to_start() {
-    /*
-    This function will return code of execution
-    0 -- normal run from start to finish and back
-    1 -- normal run from start to finish and back + save map
-    2 -- normal run from start to finish with loaded map
-    3 -- smooth run from start to finish and back
-    4 -- smooth run from start to finish and back + save map
-    5 -- smooth run from start to finish with loaded map
-    6 -- ...
-    7 -- Print maze info
-    */
-    uint8_t mode = 0;
-    uint8_t signal = 0;
-    while(true) {
-        update_motor_controllers();
-        if (g_left_button) {
-            break;
-        }
-        print_sensors();
-        print_motors();
-        if (g_right_button) {
-            mode = (mode + 1) % 8;
-            turn_mode_leds(mode, signal);
-            delay(500);
-        }
-        turn_mode_leds(mode, signal);
-        // turn_wall_leds(g_is_left_wall, g_is_front_wall, g_is_right_wall);
-        if (signal == 0) {
-            signal = (maze.get_direction() == UP) ? 1 : 2;
-        }
-        else {
-            signal = 0;
-        }
-        delay(200);
-    }
-    turn_all_leds();
-    delay(2000);
-    update_motor_controllers();
-    reset_leds();
-
-    return mode;
 }
 
 void Mouse::maze_debug() {
@@ -339,11 +295,11 @@ void Mouse::turn_90_right_smooth() {
     motor_right.set_speed(right_speed);
     if (USE_GYRO) {
         while (g_gyro_angle > this->angle + turn_angle + this->angle_offset_right) {
-            update_motor_controllers();
+            update_motor_controllers(this->angle);
         }
     } else {
         while (get_robot_angle() > this->angle + turn_angle + this->angle_offset_right) {
-            update_motor_controllers();
+            update_motor_controllers(this->angle);
         }
     }
     this->angle += turn_angle;
@@ -378,11 +334,11 @@ void Mouse::turn_45_right_smooth() {
     motor_right.set_speed(right_speed);
     if (USE_GYRO) {
         while (g_gyro_angle > this->angle + turn_angle + this->angle_offset_right) {
-            update_motor_controllers();
+            update_motor_controllers(this->angle);
         }
     } else {
         while (get_robot_angle() > this->angle + turn_angle + this->angle_offset_right) {
-            update_motor_controllers();
+            update_motor_controllers(this->angle);
         }
     }
     this->angle += turn_angle;
