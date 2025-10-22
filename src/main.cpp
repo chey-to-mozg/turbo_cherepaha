@@ -20,11 +20,10 @@ void test_run() {
   mouse.reset_mouse();
   mouse.set_config(1);
   enable_motors();
-  mouse.move_from_wall();
-  mouse.move_half_cell();
-  mouse.move_cell();
-  mouse.turn_90_left_smooth();
-  mouse.turn_90_left_smooth();
+  while(true) {
+    mouse.move(CELL, 500);
+  }
+  
 }
 
 void test_loop() {
@@ -35,6 +34,7 @@ void test_loop() {
       test_run();
     }
     else if (mode == 1) {
+      test_mototrs();
       // check_speed();
     }
     
@@ -164,6 +164,6 @@ void main_loop() {
 }
 
 void loop() {
-  // test_loop();
-  main_loop();
+  test_loop();
+  // main_loop();
 }

@@ -10,7 +10,7 @@ const bool SERIAL_ENABLE = true;
 //**** CONSTANTS ****//
 
 //** SERIAL PRINT **//
-#define DEBUG_LOGGING 0
+#define DEBUG_LOGGING 1
 #define DEBUG_MAZE 0
 #define USE_GYRO 1
 
@@ -27,7 +27,7 @@ const float MOUSE_RADIUS = 38.0; // left turn R = 40.455; // reduce in case of p
 const float SPEED_FF = 0.25; // tune to make average speed
 const float ROTATION_BIAS = -0.004; // to make robot go forward:  + to turn right, - to turn left
 
-const int MOTOR_LEFT_POLARITY = 1;
+const int MOTOR_LEFT_POLARITY = 0;
 const int MOTOR_RIGHT_POLARITY = 1;
 
 const int ENCODER_LEFT_POLARITY = 1;
