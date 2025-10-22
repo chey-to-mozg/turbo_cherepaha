@@ -4,7 +4,7 @@
 #include "mouse.h"
 #include "maze.h"
 #include "motors.h"
-// #include "utils.h"
+#include "utils.h"
 
 uint8_t mode = 0;
 
@@ -16,15 +16,29 @@ void setup() {
   init_leds();
 }
 
-void test_run() {
+void test_run() {  
   mouse.reset_mouse();
-  mouse.set_config(1);
+  mouse.set_config(0);  
   enable_motors();
-  mouse.move_from_wall();
-  mouse.move_half_cell();
+  // mouse.move_from_wall();
+  // mouse.move_half_cell();
+  // while(true) {
+  //   mouse.move_cell();
+  // }
   mouse.move_cell();
-  mouse.turn_90_left_smooth();
-  mouse.turn_90_left_smooth();
+  mouse.move_cell();
+  mouse.move_cell();
+  mouse.move_cell();
+  // mouse.turn_90_left_smooth();
+  // mouse.turn_90_left_smooth();
+  // mouse.turn_90_left_smooth();
+  // mouse.turn_90_right_smooth();
+  // mouse.turn_90_left_smooth();
+  // mouse.turn_90_right_smooth();
+  // mouse.turn_90_left_smooth();
+  // mouse.turn_90_right_smooth();
+  // mouse.turn_90_left_smooth();
+  // mouse.turn_90_right_smooth();
 }
 
 void test_loop() {
@@ -35,9 +49,14 @@ void test_loop() {
       test_run();
     }
     else if (mode == 1) {
-      // check_speed();
+      while(true) {
+        print_sensors();
+        delay(1000);
+      }
     }
-    
+    else if (mode == 1) {
+      check_pwm_control();
+    }
     mouse.stop();
   }
   
@@ -101,47 +120,30 @@ void main_loop() {
         mouse.error_ping();
       }
     }
-    else if (mode == 3)
+    // else if (mode == 3)
+    // {
+      
+    // }
+    else if (mode == 4)
     {
-      // NORMAL RUN 90
-
-      mouse.reset_mouse();
-      mouse.set_config(0);
-
-      bool finished = mouse.explore_90();
-      if (finished) {
-        mouse.finish_ping();
-        finished = mouse.explore_90(false);
-      }
-
-      if (!finished) {
-        mouse.error_ping();
-        mouse.print_info();
+      while(!button_pressed()) {
+        uint8_t leds = 0;
+        if (g_front_sensor > 30)
+          leds |= RED_LEFT_LED;
+        if (g_front_sensor > 60)
+          leds |= RED_RIGHT_LED;
+        if (g_front_sensor > 90)
+          leds |= GREEN_LEFT_LED;
+        if (g_front_sensor > 120)
+          leds |= GREEN_RIGHT_LED;
+        if (g_front_sensor > 150)
+          leds |= BLUE_LEFT_LED;
+        if (g_front_sensor > 180)
+          leds |= BLUE_RIGHT_LED;
+        turn_leds(leds);
+        delay(2);
       }
     }
-    // else if (mode == 4)
-    // {
-    //   // smouth run and back
-
-    //   mouse.reset_mouse();
-    //   maze.reset_maze();
-
-    //   maze.set_direction(RIGHT);
-      
-    //   maze.load_maze();
-    //   maze.lock_maze();
-
-    //   bool finished = mouse.run_smooth();
-    //   if (finished) {
-    //     mouse.finish_ping();
-    //     finished = mouse.run_smooth(false);
-    //   }
-
-    //   if (!finished) {
-    //     mouse.error_ping();
-    //     mouse.print_info();
-    //   }
-    // }
     else if (mode == 5)
     {
       test_mototrs();
@@ -164,6 +166,6 @@ void main_loop() {
 }
 
 void loop() {
-  // test_loop();
-  main_loop();
+  test_loop();
+  // main_loop();
 }

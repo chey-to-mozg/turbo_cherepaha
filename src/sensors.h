@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <config.h>
 #include "leds.h"
-#include <iarduino_VCC.h>
+// #include <iarduino_VCC.h>
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 
@@ -16,6 +16,8 @@ extern int g_front_sensor_raw_right;
 
 extern int g_left_sensor;
 extern int g_right_sensor;
+extern int g_front_sensor_left;
+extern int g_front_sensor_right;
 extern int g_front_sensor;
 
 extern bool g_is_left_wall;
@@ -44,7 +46,5 @@ bool button_pressed();
 void reset_steering();
 void enable_steering();
 void disable_steering();
-
-int get_front_sensor();
 
 #endif

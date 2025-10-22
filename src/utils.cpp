@@ -1,7 +1,7 @@
 #include "utils.h"
 
 void check_speed() {
-    int pwm = 40;
+    int pwm = 0;
     while (!Serial.available()) {
         delay(100);
     }
@@ -60,6 +60,7 @@ void report_speed(int target_speed, uint32_t time_millis) {
 }
 
 void check_pwm_control() {
+    enable_motors();
     motor_left.reset_motor();
     motor_right.reset_motor();
     while (!Serial.available()) {
@@ -68,9 +69,13 @@ void check_pwm_control() {
     while (Serial.available()) {
         Serial.read();
     }
+    report_speed(100, 5000);
     report_speed(400, 5000);
+    report_speed(700, 5000);
     report_speed(200, 5000);
     report_speed(0, 1000);
+
+    disable_motors();
     
     Serial.println("0");
 }

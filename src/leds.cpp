@@ -13,6 +13,8 @@ uint8_t step = 0;
 const uint8_t front_wall_leds = RED_LEFT_LED | RED_RIGHT_LED;
 const uint8_t left_wall_leds = BLUE_LEFT_LED;
 const uint8_t right_wall_leds = BLUE_RIGHT_LED;
+uint8_t current_emmiters = 0; // to control emmitters
+uint8_t current_leds = 0; // to control leds
 
 
 void init_leds() {
@@ -21,10 +23,21 @@ void init_leds() {
     pinMode(CLOCK_PIN, OUTPUT);
 }
 
-void turn_leds(uint8_t controls) {
+void trigger_devider() {
+    uint8_t controls = current_emmiters | current_leds;
     digitalWrite(LATCH_PIN, LOW);
     shiftOut(DATA_PIN, CLOCK_PIN, LSBFIRST, controls);
     digitalWrite(LATCH_PIN, HIGH);
+}
+
+void turn_leds(uint8_t controls) {
+    current_leds = controls;
+    trigger_devider();
+}
+
+void turn_emmiters(uint8_t controls) {
+    current_emmiters = controls;
+    trigger_devider();
 }
 
 void turn_all_leds() {

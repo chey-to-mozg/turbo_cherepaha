@@ -58,8 +58,12 @@ void print_sensors() {
         Serial.print("^");
         Serial.print(" ");
         Serial.print(g_front_sensor_raw_left);
-        // Serial.print(" ");
-        // Serial.print(front_raw_right);
+        Serial.print("|");
+        Serial.print(g_front_sensor_left);
+        Serial.print(" ");
+        Serial.print(g_front_sensor_raw_right);
+        Serial.print("|");
+        Serial.print(g_front_sensor_right);
         Serial.print(" ");
         Serial.print(g_front_sensor);
 

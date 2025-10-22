@@ -69,7 +69,7 @@ class Maze {
         Pair start_position = {15, 0};
         Pair mouse_position = start_position;
         uint8_t mouse_direction = UP;
-        Pair target = {10, 5};
+        Pair target = {11, 3};
         char path[MAZE_WIDTH * MAZE_WIDTH];
         uint8_t path_len = 0;
         uint8_t current_path_idx = 0;

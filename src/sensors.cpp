@@ -5,8 +5,13 @@ int g_right_sensor_raw;
 int g_front_sensor_raw_left;
 int g_front_sensor_raw_right;
 
+int sensor_data[4] = {0}; // contain data with turned on/off reads for every sensor
+uint8_t read_step = 0;
+
 int g_left_sensor;
 int g_right_sensor;
+int g_front_sensor_left;
+int g_front_sensor_right;
 int g_front_sensor;
 
 bool g_is_left_wall;
@@ -29,13 +34,8 @@ uint8_t FIFOBuffer[64];
 float g_gyro_angle;
 float prev_gyro_angle = 0;
 
-float vcc_coef = 0.0;
+float vcc_coef = 1.0;
 
-int get_front_sensor() {
-    int value;
-    value = g_front_sensor;
-    return value;
-}
 
 int read_row(uint8_t sensor) {
     float rawData = 0;
@@ -68,16 +68,65 @@ void read_gyro() {
     g_gyro_angle += angle_delta;
 }
 
+void read_sensors() {
+    // switch (read_step) {
+    //     case 0:
+    //         // enable 1 emitter
+    //         turn_emmiters(FRONT_EMITTER);
+    //         break;
+    //     case 1:
+    //         // wait for emitter to power up
+    //         break;
+    //     case 2:
+    //         g_front_sensor_raw_left = analogRead(FRONT_LEFT_WALL_SENSOR);
+    //         g_front_sensor_raw_right = analogRead(FRONT_RIGHT_WALL_SENSOR);
+    //         break;
+    //     case 3:
+    //         // enable another emitter
+    //         turn_emmiters(SIDE_EMITTER);
+    //         break;
+    //     case 4:
+    //         // wait for emitter to power up
+    //         break;
+    //     case 5:
+    //         // read all sensors right and front left is active
+    //         g_left_sensor_raw = analogRead(LEFT_WALL_SENSOR);
+    //         g_right_sensor_raw = analogRead(RIGHT_WALL_SENSOR);
+    //         break;
+    // }
+    // read_step++;
+    // read_step = read_step % 6;
+    switch (read_step) {
+        case 0:
+            // enable 1 emitter
+            turn_emmiters(FRONT_EMITTER);
+            break;
+        case 1:
+            g_front_sensor_raw_left = analogRead(FRONT_LEFT_WALL_SENSOR);
+            g_front_sensor_raw_right = analogRead(FRONT_RIGHT_WALL_SENSOR);
+            break;
+        case 2:
+            // enable another emitter
+            turn_emmiters(SIDE_EMITTER);
+            break;
+        case 3:
+            // read all sensors right and front left is active
+            g_left_sensor_raw = analogRead(LEFT_WALL_SENSOR);
+            g_right_sensor_raw = analogRead(RIGHT_WALL_SENSOR);
+            break;
+    }
+    read_step++;
+    read_step = read_step % 4;
+}
+
 void update_sensors() {
-    g_left_sensor_raw = read_row(LEFT_WALL_SENSOR);
-    g_right_sensor_raw = read_row(RIGHT_WALL_SENSOR);
-    g_front_sensor_raw_left = read_row(FRONT_LEFT_WALL_SENSOR);
-    // g_front_sensor_raw_right = read_row(FRONT_RIGHT_WALL_SENSOR);
+    read_sensors();
 
     g_left_sensor = (int)(g_left_sensor_raw * LEFT_SCALE);
     g_right_sensor = (int)(g_right_sensor_raw * RIGHT_SCALE);
-    // g_front_sensor = (int)((g_front_sensor_raw_left + g_front_sensor_raw_right) * FRONT_SCALE);
-    g_front_sensor = (int)((g_front_sensor_raw_left) * FRONT_SCALE);
+    g_front_sensor_left = (int)(g_front_sensor_raw_left * FRONT_SCALE_LEFT);
+    g_front_sensor_right = (int)( g_front_sensor_raw_right * FRONT_SCALE_RIGHT);
+    g_front_sensor = (int)((g_front_sensor_left + g_front_sensor_right) / 2);
 
     g_is_left_wall = g_left_sensor > LEFT_THRESHOLD;
     g_is_right_wall = g_right_sensor > RIGHT_THRESHOLD;
@@ -159,11 +208,7 @@ void calibrate_gyro(uint8_t devStatus) {
         Serial.println(F("Enabling DMP..."));   //Turning ON DMP
         mpu.setDMPEnabled(true);
 
-        mpu.getIntStatus();
-
-        /* Set the DMP Ready flag so the main loop() function knows it is okay to use it */
         Serial.println(F("DMP ready! Waiting for first interrupt..."));
-        mpu.dmpGetFIFOPacketSize(); //Get expected DMP packet size for later comparison
     } 
     else {
         while(!button_pressed()) {
@@ -185,12 +230,12 @@ void init_gyro() {
     mpu.initialize();
     Serial.println(F("Initializing DMP..."));
     uint8_t devStatus = mpu.dmpInitialize();
-    mpu.setXAccelOffset(5673);
-    mpu.setYAccelOffset(5439);
-    mpu.setZAccelOffset(8873);
-    mpu.setXGyroOffset(-93);
-    mpu.setYGyroOffset(-129);
-    mpu.setZGyroOffset(3);
+    mpu.setXAccelOffset(-6568);
+    mpu.setYAccelOffset(4124);
+    mpu.setZAccelOffset(9834);
+    mpu.setXGyroOffset(-97);
+    mpu.setYGyroOffset(7);
+    mpu.setZGyroOffset(25);
     
     calibrate_gyro(devStatus);
     g_gyro_angle = 0;
@@ -200,14 +245,14 @@ void init_sesnors() {
     pinMode(LEFT_WALL_SENSOR, INPUT);
     pinMode(RIGHT_WALL_SENSOR, INPUT);
     pinMode(FRONT_LEFT_WALL_SENSOR, INPUT);
-    // pinMode(FRONT_RIGHT_WALL_SENSOR, INPUT);
+    pinMode(FRONT_RIGHT_WALL_SENSOR, INPUT);
 
     pinMode(BUTTON, INPUT_PULLUP);
 
     g_left_button = false;
     g_right_button = false;
 
-    vcc_coef = analogRead_VCC() / REF_VCC;
+    // vcc_coef = analogRead_VCC() / REF_VCC;
 
     init_gyro();
 }

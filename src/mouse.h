@@ -10,10 +10,7 @@
 
 #define SPEEDMAX_EXPLORE 300
 #define SPEEDMAX_FAST 500
-#define SPEEDMAX_SPIN_TURN 150
-
-
-extern float MOUSE_CONFIG[2][11];
+#define SPEEDMAX_SPIN_TURN 200
 
 class Mouse {
     public:
@@ -37,12 +34,12 @@ class Mouse {
         void move_backward();
         void update_walls();
         bool explore(bool to_finish = true);
-        bool explore_90(bool to_finish = true);
         bool run_short();
         void reset_mouse();
         float get_angle();
         void set_config(int config_id);
         void switch_start_direction();
+        float turn_inner_speed = 0;
     private:
         void move_angle(float turn_angle, float speed);
         void turn(float angle);
@@ -61,7 +58,8 @@ class Mouse {
         float pre_turn_reference_left = 0;
         float pre_turn_reference_right = 0;
         float front_reference = 0;
-        float turn_ratio = 0;
+        float turn_speed = 0;
+        
         float angle = 0;
 };
 

@@ -14,10 +14,13 @@
 #define GREEN_RIGHT_LED 0b00000100
 #define BLUE_LEFT_LED 0b00010000
 #define BLUE_RIGHT_LED 0b00000010
+#define FRONT_EMITTER 0b10000000
+#define SIDE_EMITTER 0b01000000
 
 
 void init_leds();
 void turn_leds(uint8_t controls);
+void turn_emmiters(uint8_t controls);
 void turn_all_leds();
 void reset_leds();
 void init_loading_leds();
