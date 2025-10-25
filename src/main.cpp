@@ -20,19 +20,17 @@ void test_run() {
   mouse.reset_mouse();
   mouse.set_config(0);  
   enable_motors();
-  // mouse.move_from_wall();
-  // mouse.move_half_cell();
+  mouse.move_from_wall();
+  mouse.move_half_cell();
   // while(true) {
   //   mouse.move_cell();
   // }
-  mouse.move_cell();
-  mouse.move_cell();
-  mouse.move_cell();
-  mouse.move_cell();
+  // mouse.move_cell();
   // mouse.turn_90_left_smooth();
   // mouse.turn_90_left_smooth();
   // mouse.turn_90_left_smooth();
-  // mouse.turn_90_right_smooth();
+  mouse.turn_90_right_smooth();
+  mouse.turn_90_right_smooth();
   // mouse.turn_90_left_smooth();
   // mouse.turn_90_right_smooth();
   // mouse.turn_90_left_smooth();
@@ -54,8 +52,11 @@ void test_loop() {
         delay(1000);
       }
     }
-    else if (mode == 1) {
+    else if (mode == 2) {
       check_pwm_control();
+    }
+    else if (mode == 3) {
+      mouse.show_nominal_value();
     }
     mouse.stop();
   }
@@ -166,6 +167,6 @@ void main_loop() {
 }
 
 void loop() {
-  test_loop();
-  // main_loop();
+  // test_loop();
+  main_loop();
 }

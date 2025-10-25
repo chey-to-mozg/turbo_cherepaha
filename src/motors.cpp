@@ -3,6 +3,9 @@
 Motor motor_left(LEFT_DIR, LEFT_PWM, MOTOR_LEFT_POLARITY);
 Motor motor_right(RIGHT_DIR, RIGHT_PWM, MOTOR_RIGHT_POLARITY);
 
+uint32_t last_update = micros();
+float last_angle_error = 0;
+
 Motor::Motor(int dir_pin, int pwm_pin, int encoder_polarity) {
     this->dir_pin = dir_pin;
     this->pwm_pin = pwm_pin;
@@ -23,12 +26,10 @@ void Motor::reset_motor() {
 
 void Motor::set_speed(float speed) {
     this->speed = speed;
-    if (!this->accelerating) {
-        this->acceleration_speed = this->speed;
+    if (this->acceleration_speed != speed) {
+        this->cum_speed_error = 0;
+        this->last_speed_error = 0;
     }
-    update_encoders();
-    this->last_update = millis();
-    delay(2);
 }
 
 void Motor::set_direction(int direction) {
@@ -66,37 +67,76 @@ void Motor::accelerate() {
             }
             this->acceleration_speed += speed_delta;
         }
+    } else if (this->acceleration_speed != this->speed) {
+        this->acceleration_speed = this->speed;
     }
 }
 
-void Motor::update_pwm(float distance_change, float angle_error, float pos_error) {
+int pwm_converter(float speed) {
+    float multiplier = 0.1;
+    int pwm = 0;
+    if (speed <= 50) {
+        multiplier = 0.355;
+    } else if (speed <= 150) {
+        multiplier = 0.355;
+    } else if (speed <= 250) {
+        multiplier = 0.185;
+    } else if (speed <= 350) {
+        multiplier = 0.1325;
+    } else if (speed <= 450) {
+        multiplier = 0.12;
+    } else if (speed <= 550) {
+        multiplier = 0.1;
+    } else if (speed <= 650) {
+        multiplier = 0.1;
+    } else if (speed <= 750) {
+        multiplier = 0.095;
+    } else if (speed <= 850) {
+        multiplier = 0.1;
+    } else if (speed <= 950) {
+        multiplier = 0.1;
+    } 
+    pwm = (int) (speed * multiplier);
+    return pwm;
+}
+
+void Motor::update_pwm(float distance_change, float angle_error, float pos_error, uint32_t time_delta_micros) {
     if (!this->enabled) {
         return;
     }
     accelerate();
-    uint32_t cur_time = millis();
-    uint32_t time_delta_millis = cur_time - this->last_update;
-    float time_delta = (float)time_delta_millis / 1000; // secs
-    if (time_delta == 0) {
-        time_delta = ULONG_MAX / 1000;
+    if (time_delta_micros < 1) {
+        return;
     }
-    this->actual_speed = distance_change / time_delta;
-    this->last_update = cur_time;
-    float pwm_new;
-    float e = (this->acceleration_speed - this->actual_speed) * SPEED_FF;
-    float de = this->last_speed_error - e;
+    float time_delta = (float)time_delta_micros / 1000000; // secs
+    float current_speed = distance_change / time_delta;
+    // in same dt we can get different amount of encodfer ticks. need to avarage value
+    this->actual_speed = (current_speed + this->last_actual_speed) / 2;
+    this->last_actual_speed = current_speed;
+
+    float target_speed = this->acceleration_speed + angle_error + pos_error;
+
+    float e = target_speed - this->actual_speed;
+    float de = e - this->last_speed_error;
     this->last_speed_error = e;
     float speed_error = e * KP_FWD + de * KD_FWD;
-    float a_de = this->last_angle_error - angle_error;
-    this->last_angle_error = angle_error;
-    angle_error = angle_error * KP_ROT + a_de * KD_ROT;
-    pwm_new = this->acceleration_speed * SPEED_FF;
-    pwm_new += speed_error + angle_error + pos_error;
-    set_pwm((int)pwm_new);
+
+    this->cum_speed_error = speed_error;
+    float pwm_new = target_speed + this->cum_speed_error;
+    bool is_neg = pwm_new < 0;
+    pwm_new = pwm_converter(abs(pwm_new));
+    if (is_neg) {
+        pwm_new *= -1;
+    }
+    set_pwm(pwm_new);
 }
 
 float Motor::get_speed() {
     return this->actual_speed;
+}
+
+float Motor::get_inner_speed() {
+    return this->acceleration_speed;
 }
 
 int Motor::get_pwm() {
@@ -123,6 +163,19 @@ void stop_motors() {
     motor_right.reset_motor();
 }
 
+float calculate_angle_error() {
+    float angle_error = 0;
+    if (USE_GYRO) {
+            angle_error = g_gyro_angle - mouse.get_angle();
+        } else {
+            angle_error = get_robot_angle() - mouse.get_angle();
+        }
+        float de = angle_error - last_angle_error;
+        last_angle_error = angle_error;
+        angle_error = angle_error * KP_ROT + de * KD_ROT;
+        return angle_error;
+}
+
 void update_motor_controllers() {
     update_encoders();
     update_sensors();
@@ -132,14 +185,13 @@ void update_motor_controllers() {
     float pos_error = 0;
     if (g_steering_enabled) {
         pos_error = calculate_steering_adjustment();
-        if (USE_GYRO) {
-            angle_error = g_gyro_angle - mouse.get_angle();
-        } else {
-            angle_error = get_robot_angle() - mouse.get_angle();
-        }
+        angle_error = calculate_angle_error();
     }
-    motor_left.update_pwm(increment_left, angle_error, pos_error);
-    motor_right.update_pwm(increment_right, -angle_error, -pos_error);
+    uint32_t cur_time = micros();
+    uint32_t time_delta = cur_time - last_update;
+    last_update = cur_time;
+    motor_left.update_pwm(increment_left, angle_error, pos_error, time_delta);
+    motor_right.update_pwm(increment_right, -angle_error, -pos_error, time_delta);
     print_motors();
 }
 

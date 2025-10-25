@@ -17,6 +17,7 @@ class Mouse {
         Mouse();
         // make this public for tests
         uint8_t wait_to_start();
+        void show_nominal_value();
         void maze_debug();
         void error_ping();
         void finish_ping(int counts = 0);
@@ -39,7 +40,6 @@ class Mouse {
         float get_angle();
         void set_config(int config_id);
         void switch_start_direction();
-        float turn_inner_speed = 0;
     private:
         void move_angle(float turn_angle, float speed);
         void turn(float angle);
@@ -59,8 +59,9 @@ class Mouse {
         float pre_turn_reference_right = 0;
         float front_reference = 0;
         float turn_speed = 0;
-        
+        float turn_inner_speed = 0;
         float angle = 0;
+        float distance = 0;
 };
 
 extern Mouse mouse;

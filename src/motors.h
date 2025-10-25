@@ -2,7 +2,6 @@
 #define MOTORS_H
 
 #include <Arduino.h>
-#include <limits.h>
 #include "config.h"
 #include "encoders.h"
 #include "sensors.h"
@@ -14,8 +13,9 @@ class Motor {
         void reset_motor();
         void set_speed(float speed);
         void set_pwm(int pwm);
-        void update_pwm(float distance_change, float angle_error, float pos_error);
+        void update_pwm(float distance_change, float angle_error, float pos_error, uint32_t time_delta);
         float get_speed();
+        float get_inner_speed();
         int get_pwm();
         void set_enable(bool enabled);
     private:
@@ -26,13 +26,13 @@ class Motor {
         int polarity;
         bool accelerating = true;
         float speed = 0;
+        float last_actual_speed = 0;
         float actual_speed = 0;
         float acceleration_speed = 0;
         float last_speed_error = 0;
         float last_angle_error = 0;
         float cum_speed_error = 0;
         int pwm = 0;
-        uint32_t last_update = 0;
         bool enabled = false;
 };
 

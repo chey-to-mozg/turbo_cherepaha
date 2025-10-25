@@ -10,7 +10,7 @@ const bool SERIAL_ENABLE = true;
 //**** CONSTANTS ****//
 
 //** SERIAL PRINT **//
-#define DEBUG_LOGGING 1
+#define DEBUG_LOGGING 0
 #define DEBUG_MAZE 0
 #define USE_GYRO 1
 
@@ -24,7 +24,7 @@ const float WHEEL_DIAMETER = 33.6; // numbers from documentation.
 
 const float MOUSE_RADIUS = 38.0; // left turn R = 40.455; // reduce in case of pere-turn, increase in case of nedo-turn
 
-const float SPEED_FF = 0.125; // tune to make average speed
+const float SPEED_FF = 0.15; // tune to make average speed
 const float ROTATION_BIAS = 0.0; // to make robot go forward:  + to turn right, - to turn left
 
 const int MOTOR_LEFT_POLARITY = 0;
@@ -37,15 +37,15 @@ const int MAX_PWM = 250;
 const int MIN_PWM = -250;
 
 //** PD  **/
-const float KP_FWD = 2.0;
-const float KD_FWD = 1.0;
+const float KP_FWD = 4.0;
+const float KD_FWD = 0.5;
 
-const float KP_ROT = 1.0; //2.0;
-const float KD_ROT = 2.0;
+const float KP_ROT = 5.0; //2.0;
+const float KD_ROT = 1.0;
 
 // controller constants for the steering controller
-const float KP_STEER = 0.25;
-const float KD_STEER = 2.0;
+const float KP_STEER = 0.5;
+const float KD_STEER = 0.5;
 
 //** MAZE **/
 
@@ -61,10 +61,10 @@ enum Direction: uint8_t {
 
 //** SENSORS **/
 const float REF_VCC = 8.4; // reference battary level for sensor readaings
-const int LEFT_CALIBRATION = 68; // test when robot centered and no front wall
-const int RIGHT_CALIBRATION = 65; // test when robot centered and no front wall
-const int FRONT_CALIBRATION_LEFT = 60; // test when robot with back walls
-const int FRONT_CALIBRATION_RIGHT = 48; // test when robot with back walls
+const int LEFT_CALIBRATION = 84; // test when robot centered and no front wall
+const int RIGHT_CALIBRATION = 83; // test when robot centered and no front wall
+const int FRONT_CALIBRATION_LEFT = 69; // test when robot with back walls
+const int FRONT_CALIBRATION_RIGHT = 57; // test when robot with back walls
 
 const int NOMINAL_VALUE = 100; // sensors should give 100 in normal position
 
@@ -76,9 +76,9 @@ const float FRONT_SCALE_RIGHT = (float)NOMINAL_VALUE / FRONT_CALIBRATION_RIGHT;
 const int READS_PER_SENSOR = 1;
 
 // values to detect walls 70
-const int LEFT_THRESHOLD = 50;
-const int RIGHT_THRESHOLD = 45;
-const int FRONT_THRESHOLD = 30;
+const int LEFT_THRESHOLD = 40;
+const int RIGHT_THRESHOLD = 40;
+const int FRONT_THRESHOLD = 20;
 
 // button treshold
 const int LEFT_BUTTON_THRESHOLD = 200;

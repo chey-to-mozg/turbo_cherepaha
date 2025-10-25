@@ -47,12 +47,6 @@ class Queue {
     return mItemCount;
   }
 
-  void error_ping() {
-    // digitalWrite(LED_GREEN, 1);
-    // digitalWrite(LED_BLUE, 1);
-    // digitalWrite(LED_RED, 1);
-  }
-
   void clear() {
     mHead = 0;
     mTail = 0;
@@ -67,7 +61,7 @@ class Queue {
       mTail -= MAX_ITEMS;
     }
     if (mItemCount > MAX_ITEMS) {
-        error_ping();
+        exit(1);
     }
   }
 
