@@ -2,10 +2,11 @@
 
 Mouse mouse;
 
-float MOUSE_CONFIG[2][12] = {
-// max_speed | angle_offset_left |  pre_turn_ofset_left |   after_turn_offset_left |    pre_turn_reference_left |      angle_offset_right |    pre_turn_ofset_right |   after_turn_offset_right |   pre_turn_reference_right |  front_reference |   outer_turn_speed |   inner_turn_speed
-    {300.0,    10,                   0,                      20,                          45.0,                          0,                      0,                       0,                         45,                         140.0,              400.0,               162.0},
-    {500.0,    15,                 20.0,                   40.0,                       60.0,                          15,                     20.0,                   40.0,                       60.0,                       160.0,              500,                 300.0},
+float MOUSE_CONFIG[3][12] = {
+// max_speed | angle_offset_left |  pre_turn_ofset_left |   after_turn_offset_left |    pre_turn_reference_left |   angle_offset_right |     pre_turn_ofset_right |  after_turn_offset_right |   pre_turn_reference_right |  front_reference |   outer_turn_speed |   inner_turn_speed
+    {300.0,    10,                  0,                      10,                         50,                         10,                      0,                      10,                         45,                         140.0,              400.0,               162.0},
+    {500.0,    10,                  0,                      10,                         50,                         10,                      0,                      30,                         40,                         140.0,              600,                 200.0},
+    {800.0,    15,                  0,                      30,                         35,                         15,                      0,                      25,                         35,                          140.0,              600,                 200.0},
 };
 
 Mouse::Mouse() {
@@ -187,6 +188,8 @@ void Mouse::show_nominal_value() {
         if (g_right_button) {
             mod++;
             mod = mod % 2;
+            turn_all_leds();
+            delay(1000);
         }
 
         switch (mod)

@@ -121,10 +121,26 @@ void main_loop() {
         mouse.error_ping();
       }
     }
-    // else if (mode == 3)
-    // {
-      
-    // }
+    else if (mode == 3)
+    {
+      //** SUPER FAST RUN WITH MAP LOADING **/
+
+      mouse.reset_mouse();
+      mouse.set_config(2);
+      maze.reset_maze();
+
+      maze.load_maze();
+      maze.lock_maze();
+
+      bool finished = mouse.run_short();
+      if (finished) {
+        mouse.finish_ping();
+        mouse.set_config(0);
+        mouse.explore(false);
+      } else {
+        mouse.error_ping();
+      }
+    }
     else if (mode == 4)
     {
       while(!button_pressed()) {

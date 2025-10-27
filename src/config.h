@@ -40,11 +40,11 @@ const int MIN_PWM = -250;
 const float KP_FWD = 4.0;
 const float KD_FWD = 0.5;
 
-const float KP_ROT = 5.0; //2.0;
+const float KP_ROT = 4.0; //2.0;
 const float KD_ROT = 1.0;
 
 // controller constants for the steering controller
-const float KP_STEER = 0.5;
+const float KP_STEER = 0.75;
 const float KD_STEER = 0.5;
 
 //** MAZE **/

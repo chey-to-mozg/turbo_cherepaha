@@ -93,7 +93,7 @@ void print_motors() {
         Serial.println("");
     }
     else {
-        delay(4);
+        delay(3);
     }
 }
 
