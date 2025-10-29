@@ -76,21 +76,21 @@ int pwm_converter(float speed) {
     float multiplier = 0.1;
     int pwm = 0;
     if (speed <= 50) {
-        multiplier = 0.355;
+        multiplier = 0.4;
     } else if (speed <= 150) {
-        multiplier = 0.355;
+        multiplier = 0.4;
     } else if (speed <= 250) {
-        multiplier = 0.185;
+        multiplier = 0.21;
     } else if (speed <= 350) {
-        multiplier = 0.1325;
+        multiplier = 0.16;
     } else if (speed <= 450) {
-        multiplier = 0.12;
+        multiplier = 0.135;
     } else if (speed <= 550) {
-        multiplier = 0.1;
+        multiplier = 0.12;
     } else if (speed <= 650) {
-        multiplier = 0.1;
+        multiplier = 0.11;
     } else if (speed <= 750) {
-        multiplier = 0.095;
+        multiplier = 0.1;
     } else if (speed <= 850) {
         multiplier = 0.1;
     } else if (speed <= 950) {
@@ -190,8 +190,8 @@ void update_motor_controllers() {
     uint32_t cur_time = micros();
     uint32_t time_delta = cur_time - last_update;
     last_update = cur_time;
-    motor_left.update_pwm(increment_left, angle_error, pos_error, time_delta);
-    motor_right.update_pwm(increment_right, -angle_error, -pos_error, time_delta);
+    motor_left.update_pwm(increment_left, -angle_error, pos_error, time_delta);
+    motor_right.update_pwm(increment_right, angle_error, -pos_error, time_delta);
     print_motors();
 }
 

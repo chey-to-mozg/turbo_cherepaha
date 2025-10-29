@@ -18,7 +18,7 @@ void setup() {
 
 void test_run() {  
   mouse.reset_mouse();
-  mouse.set_config(0);  
+  mouse.set_config(2);  
   enable_motors();
   mouse.move_from_wall();
   mouse.move_half_cell();
@@ -26,6 +26,8 @@ void test_run() {
   //   mouse.move_cell();
   // }
   // mouse.move_cell();
+  mouse.move(110, 800);
+  mouse.move(50, 600, 45);
   // mouse.turn_90_left_smooth();
   // mouse.turn_90_left_smooth();
   // mouse.turn_90_left_smooth();

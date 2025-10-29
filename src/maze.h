@@ -2,8 +2,8 @@
 #define MAZE_H
 
 #include <Arduino.h>
-#include "queue.h"
 #include <EEPROM.h>
+#include "config.h"
 
 #define MAZE_WIDTH 16
 
@@ -32,6 +32,58 @@ struct Pair {
     }
 };
 
+class Queue {
+  public:
+  explicit Queue(int maxSize = 64) : MAX_ITEMS(maxSize) {
+    mData = new Pair[MAX_ITEMS + 1];
+    clear();
+  }
+
+  ~Queue() {
+    delete[] mData;
+  };
+
+  int size() {
+    return mItemCount;
+  }
+
+  void clear() {
+    mHead = 0;
+    mTail = 0;
+    mItemCount = 0;
+  }
+
+  void add(Pair item) {
+    mData[mTail] = item;
+    ++mTail;
+    ++mItemCount;
+    if (mTail > MAX_ITEMS) {
+      mTail -= MAX_ITEMS;
+    }
+  }
+
+  Pair pop() {
+    Pair result = mData[mHead];
+    ++mHead;
+    if (mHead > MAX_ITEMS) {
+      mHead -= MAX_ITEMS;
+    }
+    --mItemCount;
+    return result;
+  }
+
+  bool empty() {
+    return mItemCount == 0;
+  }
+
+  protected:
+  Pair *mData;
+  const int MAX_ITEMS;
+  int mHead;
+  int mTail;
+  int mItemCount;
+};
+
 extern uint8_t WALLS[4];
 extern Pair NEIGHBOURS[4];
 extern char DIRECTION_TO_CHAR[4];
@@ -43,7 +95,7 @@ class Maze {
         void reset_maze();
         void floodfill(Pair target);
         bool find_path(Pair start);
-        char get_next_move(bool update_counter = true);
+        uint8_t get_next_move(bool update_counter = true);
         uint8_t get_path_len();
         void set_walls(bool is_left_wall, bool is_front_wall, bool is_right_wall);
         void set_visited();
@@ -70,7 +122,7 @@ class Maze {
         Pair mouse_position = start_position;
         uint8_t mouse_direction = UP;
         Pair target = {11, 3};
-        char path[MAZE_WIDTH * MAZE_WIDTH];
+        uint8_t path[MAZE_WIDTH * MAZE_WIDTH];
         uint8_t path_len = 0;
         uint8_t current_path_idx = 0;
 

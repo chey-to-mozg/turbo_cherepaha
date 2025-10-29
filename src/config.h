@@ -11,7 +11,6 @@ const bool SERIAL_ENABLE = true;
 
 //** SERIAL PRINT **//
 #define DEBUG_LOGGING 0
-#define DEBUG_MAZE 0
 #define USE_GYRO 1
 
 const bool DEBUG_AVAILABLE = DEBUG_LOGGING;
@@ -57,6 +56,13 @@ enum Direction: uint8_t {
   RIGHT = 1,
   DOWN = 2,
   LEFT = 3,
+};
+
+enum Action: uint8_t {
+  FORWARD = 0,
+  TURN_RIGHT = 1,
+  TURN_LEFT = 2,
+  AROUND = 3,
 };
 
 //** SENSORS **/

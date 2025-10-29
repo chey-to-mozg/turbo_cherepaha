@@ -18,10 +18,8 @@ class Mouse {
         // make this public for tests
         uint8_t wait_to_start();
         void show_nominal_value();
-        void maze_debug();
         void error_ping();
         void finish_ping(int counts = 0);
-        void print_info();
         void stop();
         void move(float distance, float max_speed, int check_wall_distance = 0);
         void move_from_wall();
@@ -37,30 +35,29 @@ class Mouse {
         bool explore(bool to_finish = true);
         bool run_short();
         void reset_mouse();
-        float get_angle();
+        int get_angle();
+        float get_position();
         void set_config(int config_id);
         void switch_start_direction();
     private:
         void move_angle(float turn_angle, float speed);
+        void turn_smooth(float turn_angle);
+        void move_cell_unit(float target, bool untill_wall);
         void turn(float angle);
 
         bool is_start = true;
         bool is_center = false;
         uint8_t start_direction = UP;
 
-        float max_speed = 0;
-        float angle_offset_left = 0;
-        float angle_offset_right = 0;
-        float pre_turn_ofset_left = 0;
-        float pre_turn_ofset_right = 0;
-        float after_turn_offset_left = 0;
-        float after_turn_offset_right = 0;
-        float pre_turn_reference_left = 0;
-        float pre_turn_reference_right = 0;
-        float front_reference = 0;
-        float turn_speed = 0;
-        float turn_inner_speed = 0;
-        float angle = 0;
+        int max_speed = 0;
+        int angle_offset = 0;
+        int pre_turn_ofset = 0;
+        int after_turn_offset = 0;
+        int pre_turn_reference = 0;
+        int front_reference = 0;
+        int turn_speed = 0;
+        int turn_inner_speed = 0;
+        int angle = 0;
         float distance = 0;
 };
 

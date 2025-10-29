@@ -115,7 +115,7 @@ void Maze::floodfill(Pair target) {
 
     visited[target.y][target.x] = 1;
 
-    Queue<Pair> to_process;
+    Queue to_process;
     to_process.add(target);
     Pair current_pos;
     while (!to_process.empty()) {
@@ -149,21 +149,19 @@ bool Maze::find_path(Pair start) {
                 cur_val = neigh_val;
                 current_pos = {neigh_y, neigh_x};
                 if (direction == i) {
-                    path[path_len++] = 'F';
+                    path[path_len++] = Action::FORWARD;
                 }
                 else if ((direction + 1) % 4 == i) {
-                    path[path_len++] = 'R';
-                    path[path_len++] = 'F';
+                    path[path_len++] = Action::TURN_RIGHT;
                     direction = (direction + 1) % 4;
                 }
                 else if ((direction + 2) % 4 == i) {
-                    path[path_len++] = 'A';
-                    path[path_len++] = 'F';
+                    path[path_len++] = Action::AROUND;
+                    path[path_len++] = Action::FORWARD;
                     direction = (direction + 2) % 4;
                 }
                 else if ((direction + 3) % 4 == i) {
-                    path[path_len++] = 'L';
-                    path[path_len++] = 'F';
+                    path[path_len++] = Action::TURN_LEFT;
                     direction = (direction + 3) % 4;
                 }
                 break;
@@ -173,8 +171,8 @@ bool Maze::find_path(Pair start) {
     return path_len != 0;
 }
 
-char Maze::get_next_move(bool update_counter) {
-    char next_move = path[current_path_idx];
+uint8_t Maze::get_next_move(bool update_counter) {
+    uint8_t next_move = path[current_path_idx];
     if (update_counter) {
         current_path_idx++;
     }
@@ -235,19 +233,23 @@ void Maze::load_maze() {
 }
 
 void Maze::print_path() {
-    if (!DEBUG_MAZE) {
-        return;
-    }
+    char symb;
     for (int i = current_path_idx; i < path_len; i++) {
-        Serial.print(path[i]);
+        if (path[i] == Action::FORWARD) {
+            symb = 'F';
+        } else if (path[i] == Action::TURN_RIGHT) {
+            symb = 'R';
+        } else if (path[i] == Action::TURN_LEFT) {
+            symb = 'L';
+        } else if (path[i] == Action::AROUND) {
+            symb = 'A';
+        }
+        Serial.print(symb);
     }
     Serial.println();
 }
 
 void Maze::print_maze() {
-    if (!(DEBUG_MAZE || DEBUG_LOGGING)) {
-        return;
-    }
     
     uint8_t cell_shape = 3;
     // print header

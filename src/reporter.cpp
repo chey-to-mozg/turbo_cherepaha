@@ -79,8 +79,8 @@ void print_motors() {
 
         Serial.print(" ^ dist ");
         Serial.print(get_robot_position());
-        // Serial.print(" position ");
-        // Serial.print(mouse.get_position());
+        Serial.print(" position ");
+        Serial.print(mouse.get_position());
         Serial.print(" enc angle ");
         Serial.print(get_robot_angle());
         Serial.print(" mouse angle ");

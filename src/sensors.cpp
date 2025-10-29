@@ -63,7 +63,7 @@ void read_gyro() {
     } else if (prev_gyro_angle > 90 && angle < -90) {
         prev_gyro_angle -= 360;
     }
-    float angle_delta = prev_gyro_angle - angle;
+    float angle_delta = angle - prev_gyro_angle;
     prev_gyro_angle = angle;
     g_gyro_angle += angle_delta;
 }
