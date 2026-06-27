@@ -10,7 +10,7 @@ const bool SERIAL_ENABLE = true;
 //**** CONSTANTS ****//
 
 //** SERIAL PRINT **//
-#define DEBUG_LOGGING 0
+#define DEBUG_LOGGING 1
 #define USE_GYRO 1
 
 const bool DEBUG_AVAILABLE = DEBUG_LOGGING;
@@ -50,6 +50,8 @@ const float KD_STEER = 0.5;
 
 const float CELL = 180.0;
 const float HALF_CELL = CELL / 2;
+const float DIAG = 127;
+const float HALF_DIAG = 63;
 
 enum Direction: uint8_t {
   UP = 0,
@@ -63,6 +65,9 @@ enum Action: uint8_t {
   TURN_RIGHT = 1,
   TURN_LEFT = 2,
   AROUND = 3,
+  TURN_RIGHT_DIAG = 4,
+  TURN_LEFT_DIAG = 5,
+  FORWARD_DIAG = 6,
 };
 
 //** SENSORS **/

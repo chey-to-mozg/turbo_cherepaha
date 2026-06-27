@@ -145,23 +145,7 @@ void main_loop() {
     }
     else if (mode == 4)
     {
-      while(!button_pressed()) {
-        uint8_t leds = 0;
-        if (g_front_sensor > 30)
-          leds |= RED_LEFT_LED;
-        if (g_front_sensor > 60)
-          leds |= RED_RIGHT_LED;
-        if (g_front_sensor > 90)
-          leds |= GREEN_LEFT_LED;
-        if (g_front_sensor > 120)
-          leds |= GREEN_RIGHT_LED;
-        if (g_front_sensor > 150)
-          leds |= BLUE_LEFT_LED;
-        if (g_front_sensor > 180)
-          leds |= BLUE_RIGHT_LED;
-        turn_leds(leds);
-        delay(2);
-      }
+      //
     }
     else if (mode == 5)
     {
@@ -186,5 +170,13 @@ void main_loop() {
 
 void loop() {
   // test_loop();
-  main_loop();
+  // main_loop();
+  Serial.println("Start");
+  long start = millis();
+  long counter = 0;
+  while (millis() - start < 10000) {
+    counter++;
+  }
+  Serial.println("Finish");
+  Serial.println(counter);
 }

@@ -29,6 +29,9 @@ class Mouse {
         void turn_90_right();
         void turn_90_left_smooth();
         void turn_90_right_smooth();
+        void turn_45_diag(char dir);
+        void turn_90_diag(char dir);
+        void turn_135_diag(char dir);
         void turn_around();
         void move_backward();
         void update_walls();
@@ -41,6 +44,7 @@ class Mouse {
         void switch_start_direction();
     private:
         void move_angle(float turn_angle, float speed);
+        void turn_diag(int angle, char dir);
         void turn_smooth(float turn_angle);
         void move_cell_unit(float target, bool untill_wall);
         void turn(float angle);

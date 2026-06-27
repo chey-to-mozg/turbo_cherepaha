@@ -319,7 +319,32 @@ void Mouse::turn_90_left_smooth() {
 
 void Mouse::turn_90_right_smooth() {
     turn_smooth(90);
-}    
+}
+
+void Mouse::turn_diag(int angle, char dir) {
+    int prev_inner_speed = this->turn_inner_speed;
+    this->turn_inner_speed = 260;
+
+    if (dir == 'L') {
+        angle *= -1;
+    }
+
+    this->turn_smooth(angle);
+
+    this->turn_inner_speed = prev_inner_speed;
+}
+
+void Mouse::turn_45_diag(char dir) {
+    this->turn_diag(45, dir);
+}
+
+void Mouse::turn_90_diag(char dir) {
+    this->turn_diag(90, dir);
+}
+
+void Mouse::turn_135_diag(char dir) {
+    this->turn_diag(135, dir);
+}
 
 void Mouse::turn_around() {
     float angle = 180;
@@ -461,70 +486,176 @@ bool Mouse::run_short() {
         return false;
     }
 
+    uint8_t action;
+    uint8_t path_len = maze.get_path_len();
+    uint8_t new_len = 0;
+    int units = 0;
+
     int path[MAZE_WIDTH * MAZE_WIDTH] = {};
-    uint8_t action = Action::FORWARD;
-    int units = -ROBOT_OFFSET;
-    path[0] = action;
-    uint8_t new_path_len = 1;
-    uint8_t next_move;
-
-    for (int i = 0; i < maze.get_path_len(); i++) {
-        next_move = maze.get_next_move();
-        bool same_path = action == next_move;
-
-        if (!same_path || action == Action::TURN_RIGHT || action == Action::TURN_LEFT) {
-            path[new_path_len++] = units;
-            path[new_path_len++] = next_move;
-            action = next_move;
-            units = 0;
-        }
-
-        if (action == Action::FORWARD) {
-            units += CELL;
-        } else if (action == Action::TURN_RIGHT || action == Action::TURN_LEFT) {
-            units += 90;
-        }
-        
+    int new_path[MAZE_WIDTH * MAZE_WIDTH] = {};
+    for (int i = 0; i < path_len; i++) {
+        action = maze.get_next_move();
+        path[i] = action;
     }
-    path[new_path_len++] = units;
+    
+
+    for (int i = 0; i < path_len; i++) {
+        if (i+1 >= path_len || i+2 >= path_len) {
+            continue;
+        }
+        if (path[i] == Action::FORWARD && path[i+1] == Action::FORWARD) {
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = CELL;
+        }
+
+        else if (path[i] == Action::FORWARD && path[i+1] == Action::TURN_RIGHT && path[i+2] == Action::TURN_LEFT) {
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = HALF_CELL;
+            new_path[new_len++] = Action::TURN_RIGHT_DIAG;
+            new_path[new_len++] = 45;
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = DIAG;
+        }
+        else if (path[i] == Action::FORWARD && path[i+1] == Action::TURN_LEFT && path[i+2] == Action::TURN_RIGHT) {
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = HALF_CELL;
+            new_path[new_len++] = Action::TURN_LEFT_DIAG;
+            new_path[new_len++] = 45;
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = DIAG;
+        }
+
+        else if (path[i] == Action::TURN_RIGHT && path[i+1] == Action::TURN_LEFT && path[i+2] == Action::TURN_RIGHT) {
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = DIAG;
+        }
+        else if (path[i] == Action::TURN_LEFT && path[i+1] == Action::TURN_RIGHT && path[i+2] == Action::TURN_LEFT) {
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = DIAG;
+        }
+
+        else if (path[i] == Action::TURN_LEFT && path[i+1] == Action::TURN_RIGHT && path[i+2] == Action::TURN_RIGHT && path[i+3] == Action::FORWARD) {
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = HALF_DIAG;
+            new_path[new_len++] = Action::TURN_RIGHT_DIAG;
+            new_path[new_len++] = 135;
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = HALF_CELL;
+        }
+        else if (path[i] == Action::TURN_RIGHT && path[i+1] == Action::TURN_LEFT && path[i+2] == Action::TURN_LEFT && path[i+3] == Action::FORWARD) {
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = HALF_DIAG;
+            new_path[new_len++] = Action::TURN_LEFT_DIAG;
+            new_path[new_len++] = 135;
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = HALF_CELL;
+        }
+
+        else if (path[i] == Action::TURN_LEFT && path[i+1] == Action::TURN_RIGHT && path[i+2] == Action::TURN_RIGHT) {
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = HALF_DIAG;
+            new_path[new_len++] = Action::TURN_RIGHT_DIAG;
+            new_path[new_len++] = 90;
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = HALF_DIAG;
+        }
+        else if (path[i] == Action::TURN_RIGHT && path[i+1] == Action::TURN_LEFT && path[i+2] == Action::TURN_LEFT) {
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = HALF_DIAG;
+            new_path[new_len++] = Action::TURN_LEFT_DIAG;
+            new_path[new_len++] = 90;
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = HALF_DIAG;
+        }
+
+        else if (path[i] == Action::FORWARD && path[i+1] == Action::TURN_RIGHT && path[i+2] == Action::TURN_RIGHT && path[i+3] == Action::TURN_LEFT) {
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = HALF_CELL;
+            new_path[new_len++] = Action::TURN_RIGHT_DIAG;
+            new_path[new_len++] = 135;
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = HALF_DIAG;
+        }
+        else if (path[i] == Action::FORWARD && path[i+1] == Action::TURN_LEFT && path[i+2] == Action::TURN_LEFT && path[i+3] == Action::TURN_RIGHT) {
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = HALF_CELL;
+            new_path[new_len++] = Action::TURN_RIGHT_DIAG;
+            new_path[new_len++] = 135;
+            new_path[new_len++] = Action::FORWARD_DIAG;
+            new_path[new_len++] = HALF_DIAG;
+        }
+
+        else if (path[i] == Action::TURN_RIGHT && path[i+1] == Action::TURN_LEFT && path[i+2] == Action::FORWARD) {
+            new_path[new_len++] = Action::TURN_LEFT_DIAG;
+            new_path[new_len++] = 45;
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = HALF_CELL;
+        }
+        else if (path[i] == Action::TURN_LEFT && path[i+1] == Action::TURN_RIGHT && path[i+2] == Action::FORWARD) {
+            new_path[new_len++] = Action::TURN_RIGHT_DIAG;
+            new_path[new_len++] = 45;
+            new_path[new_len++] = Action::FORWARD;
+            new_path[new_len++] = HALF_CELL;
+        }
+    }
 
     enable_motors();
     
     float stop_dist = 50;
-
-    for (int i = 0; i < new_path_len; i+=2) {
+    char symb;
+    for (int i = 0; i < new_len; i+=2) {
         
-        next_move = path[i];
+        action = new_path[i];
         units = path[i+1];
-        switch (next_move)
-        {
-            case Action::FORWARD:
-                // move(units, max_speed);
-                move(units - stop_dist - this->pre_turn_ofset, max_speed);
-                move(stop_dist, this->turn_speed, pre_turn_reference);
-                break;
-            case Action::TURN_RIGHT:
-                turn_smooth(units);
-                break;
-            case Action::TURN_LEFT:
-                turn_smooth(-1 * units);
-                break;
-            default:
-                // shouldnt exist
-                stop();
-                return false;
+        if (action == Action::FORWARD) {
+            symb = 'F';
+        } else if (action == Action::FORWARD_DIAG) {
+            symb = 'f';
+        } else if (action == Action::TURN_RIGHT) {
+            symb = 'R';
+        } else if (action == Action::TURN_RIGHT_DIAG) {
+            symb = 'r';
+        } else if (action == Action::TURN_LEFT) {
+            symb = 'L';
+        } else if (action == Action::TURN_LEFT_DIAG) {
+            symb = 'l';
         }
+        Serial.print(symb);
+        Serial.print(units);
     }
+    while (true)
+    {
+        /* code */
+    }
+    //     switch (action)
+    //     {
+    //         case Action::FORWARD:
+    //             // move(units, max_speed);
+    //             move(units - stop_dist - this->pre_turn_ofset, max_speed);
+    //             move(stop_dist, this->turn_speed, pre_turn_reference);
+    //             break;
+    //         case Action::TURN_RIGHT:
+    //             turn_smooth(units);
+    //             break;
+    //         case Action::TURN_LEFT:
+    //             turn_smooth(-1 * units);
+    //             break;
+    //         default:
+    //             // shouldnt exist
+    //             stop();
+    //             return false;
+    //     }
+    // }
     
-    set_config(0);
-    move_half_cell(true);
-    is_center = true;
-    is_start = false;
-    uint8_t norm_angle = ((this->angle % 360 + 360) / 90);
+    // set_config(0);
+    // move_half_cell(true);
+    // is_center = true;
+    // is_start = false;
+    // uint8_t norm_angle = ((this->angle % 360 + 360) / 90);
 
-    maze.set_position(maze.get_finish());
-    maze.set_direction(norm_angle % 4);
+    // maze.set_position(maze.get_finish());
+    // maze.set_direction(norm_angle % 4);
 
-    stop();
+    // stop();
     return path_exists;
 }

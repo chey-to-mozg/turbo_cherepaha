@@ -254,5 +254,5 @@ void init_sesnors() {
 
     // vcc_coef = analogRead_VCC() / REF_VCC;
 
-    init_gyro();
+    // init_gyro();
 }
